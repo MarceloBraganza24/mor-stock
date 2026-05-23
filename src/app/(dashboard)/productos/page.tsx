@@ -76,18 +76,36 @@ export default async function ProductosPage({ searchParams }: Props) {
         </button>
       </form>
 
+      {params.query && (
+        <div className="mb-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+          <p className="text-sm text-emerald-300">
+            Código detectado desde el scanner:
+          </p>
+          <p className="mt-1 text-xl font-bold">{params.query}</p>
+        </div>
+      )}
+
       <form
         action={createProduct}
         className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-4"
       >
         <input name="name" placeholder="Nombre del producto" required className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-        <input name="barcode" placeholder="Código de barras" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
+        <input
+          name="barcode"
+          defaultValue={params.query || ""}
+          placeholder="Código de barras"
+          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+        />
         <input name="category" placeholder="Categoría" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
         <input name="costPrice" type="number" placeholder="Precio costo" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
         <input name="salePrice" type="number" placeholder="Precio venta" required className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
         <input name="stock" type="number" placeholder="Stock actual" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
         <input name="minStock" type="number" placeholder="Stock mínimo" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-
+        <input
+          type="hidden"
+          name="redirectTo"
+          value={params.from === "ventas" ? "/ventas" : ""}
+        />
         <button className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400">
           Agregar producto
         </button>

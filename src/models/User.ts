@@ -1,6 +1,6 @@
 import mongoose, { Schema, models } from "mongoose";
 
-export type UserRole = "SUPER_ADMIN" | "OWNER" | "CASHIER" | "STOCKER";
+export type UserRole = "SUPER_ADMIN" | "OWNER" | "CASHIER" | "STOCKER" | "DELIVERY";;
 
 const userSchema = new Schema(
   {
@@ -23,7 +23,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["SUPER_ADMIN", "OWNER", "CASHIER", "STOCKER"],
+      enum: ["SUPER_ADMIN", "OWNER", "CASHIER", "STOCKER", "DELIVERY"],
       default: "OWNER",
     },
     store: {

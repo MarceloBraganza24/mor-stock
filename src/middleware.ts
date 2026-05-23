@@ -16,6 +16,10 @@ export default auth((req) => {
     "/empleados",
     "/devoluciones",
     "/reportes",
+    "/envios",
+    "/motomandado",
+    "/compras",
+    "/cobros",
   ];
 
   const isProtected = protectedRoutes.some((route) =>
@@ -80,6 +84,30 @@ export default auth((req) => {
     );
   }
 
+  if (pathname.startsWith("/envios") && !canAccess(role, "envios")) {
+    return NextResponse.redirect(
+      new URL(getDefaultRouteByRole(role), req.nextUrl.origin)
+    );
+  }
+
+  if (pathname.startsWith("/motomandado") && !canAccess(role, "motomandado")) {
+    return NextResponse.redirect(
+      new URL(getDefaultRouteByRole(role), req.nextUrl.origin)
+    );
+  }
+
+  if (pathname.startsWith("/compras") && !canAccess(role, "compras")) {
+    return NextResponse.redirect(
+      new URL(getDefaultRouteByRole(role), req.nextUrl.origin)
+    );
+  }
+
+  if (pathname.startsWith("/cobros") && !canAccess(role, "cobros")) {
+    return NextResponse.redirect(
+      new URL(getDefaultRouteByRole(role), req.nextUrl.origin)
+    );
+  }
+
   return NextResponse.next();
 });
 
@@ -95,5 +123,9 @@ export const config = {
     "/register",
     "/devoluciones/:path*",
     "/reportes/:path*",
+    "/envios/:path*",
+    "/motomandado/:path*",
+    "/compras/:path*",
+    "/cobros/:path*",
   ],
 };

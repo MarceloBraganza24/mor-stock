@@ -13,7 +13,10 @@ import {
   UserCog,
   RefreshCcw,
   Menu,
-  BarChart3
+  BarChart3,
+  Truck,
+  ClipboardList,
+  ReceiptText,
 } from "lucide-react";
 
 const navItems = [
@@ -29,6 +32,30 @@ const navItems = [
     href: "/reportes",
     icon: BarChart3,
     section: "reportes",
+  },
+  {
+    label: "Envíos",
+    href: "/envios",
+    icon: Truck,
+    section: "envios",
+  },
+  {
+    label: "Motomandado",
+    href: "/motomandado",
+    icon: Truck,
+    section: "motomandado",
+  },
+  {
+    label: "Compras",
+    href: "/compras",
+    icon: ClipboardList,
+    section: "compras",
+  },
+  {
+    label: "Cobros",
+    href: "/cobros",
+    icon: ReceiptText,
+    section: "cobros",
   },
 ] as const;
 
@@ -155,6 +182,7 @@ function RoleBadge({ role }: { role?: string }) {
       {role === "CASHIER" && "Cajero"}
       {role === "STOCKER" && "Repositor"}
       {role === "SUPER_ADMIN" && "Super admin"}
+      {role === "DELIVERY" && "Motomandado"}
     </p>
   );
 }

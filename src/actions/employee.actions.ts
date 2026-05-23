@@ -15,7 +15,7 @@ export async function getEmployees() {
 
   const employees = await User.find({
     store: session.user.store,
-    role: { $in: ["CASHIER", "STOCKER"] },
+    role: { $in: ["CASHIER", "STOCKER", "DELIVERY"] },
     isActive: true,
   }).sort({ createdAt: -1 });
 
@@ -69,7 +69,7 @@ export async function deleteEmployee(employeeId: string) {
     {
       _id: employeeId,
       store: session.user.store,
-      role: { $in: ["CASHIER", "STOCKER"] },
+      role: { $in: ["CASHIER", "STOCKER", "DELIVERY"] },
     },
     {
       isActive: false,

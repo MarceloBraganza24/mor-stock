@@ -53,6 +53,7 @@ export default async function EmpleadosPage() {
             <option value="">Seleccionar rol</option>
             <option value="CASHIER">Cajero: ventas + caja</option>
             <option value="STOCKER">Repositor: productos + stock</option>
+            <option value="DELIVERY">Motomandado: panel de entregas</option>
         </select>
 
         <button className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">

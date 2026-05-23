@@ -32,7 +32,7 @@ const cashRegisterSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["ABIERTA", "CERRADA"],
+      enum: ["ABIERTA", "CERRADA", "REVISADA"],
       default: "ABIERTA",
     },
     closedAt: {

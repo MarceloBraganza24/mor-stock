@@ -7,6 +7,7 @@ import { requireRoles } from "@/lib/auth-utils";
 import { productSchema } from "@/lib/validations";
 import { StockMovement } from "@/models/StockMovement";
 import { stockAdjustmentSchema } from "@/lib/validations";
+import { redirect } from "next/navigation";
 
 export async function getProducts(filters?: {
   query?: string;
@@ -56,6 +57,7 @@ export async function getProductCategories() {
 }
 
 export async function createProduct(formData: FormData) {
+  const redirectTo = String(formData.get("redirectTo") || "");
   const session = await requireRoles(["OWNER", "STOCKER"]);
 
   const parsed = productSchema.parse({
@@ -79,6 +81,10 @@ export async function createProduct(formData: FormData) {
   revalidatePath("/productos");
   revalidatePath("/ventas");
   revalidatePath("/dashboard");
+
+  if (redirectTo) {
+    redirect(redirectTo);
+  }
 }
 
 export async function updateProduct(productId: string, formData: FormData) {

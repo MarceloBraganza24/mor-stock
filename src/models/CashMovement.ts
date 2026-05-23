@@ -31,7 +31,7 @@ const cashMovementSchema = new Schema(
     },
     source: {
       type: String,
-      enum: ["MANUAL", "VENTA_EFECTIVO", "PAGO_FIADO", "AJUSTE", "CANCELACION_VENTA"],
+      enum: ["MANUAL", "VENTA_EFECTIVO","COMPRA_EFECTIVO", "PAGO_FIADO", "AJUSTE", "CANCELACION_VENTA"],
       default: "MANUAL",
     },
     amount: {
