@@ -5,6 +5,7 @@ import {
   getOpenCashMovements,
   getOpenCashRegister,
   openCashRegister,
+  reviewCashRegister
 } from "@/actions/cash.actions";
 import { TableContainer } from "@/components/ui/TableContainer";
 
@@ -22,6 +23,13 @@ export default async function CajaPage() {
           Abrí caja, registrá movimientos y cerrá el día con trazabilidad.
         </p>
       </div>
+
+      <a
+        href={`/api/reportes/compras?from=${params.from || ""}&to=${params.to || ""}`}
+        className="inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
+      >
+        Exportar CSV
+      </a>
 
       {!cashRegister ? (
         <form
@@ -225,6 +233,18 @@ export default async function CajaPage() {
                 >
                   ${cash.difference}
                 </td>
+                {cash.status === "CERRADA" && (
+                  <form
+                    action={async () => {
+                      "use server";
+                      await reviewCashRegister(cash._id);
+                    }}
+                  >
+                    <button className="text-sm text-emerald-400 hover:text-emerald-300">
+                      Marcar revisada
+                    </button>
+                  </form>
+                )}
               </tr>
             ))}
 

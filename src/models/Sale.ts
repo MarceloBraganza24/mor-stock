@@ -1,5 +1,28 @@
 import mongoose, { Schema, models } from "mongoose";
 
+const saleItemBatchSchema = new Schema(
+  {
+    batch: {
+      type: Schema.Types.ObjectId,
+      ref: "ProductBatch",
+      required: true,
+    },
+    batchCode: {
+      type: String,
+      default: "",
+    },
+    expirationDate: {
+      type: Date,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 const saleItemSchema = new Schema(
   {
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
@@ -8,6 +31,7 @@ const saleItemSchema = new Schema(
     unitPrice: { type: Number, required: true },
     costPrice: { type: Number, default: 0 },
     subtotal: { type: Number, required: true },
+    batches: [saleItemBatchSchema],
   },
   { _id: false }
 );

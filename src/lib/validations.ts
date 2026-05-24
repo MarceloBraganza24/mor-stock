@@ -84,3 +84,23 @@ export const purchaseSchema = z.object({
     )
     .min(1),
 });
+
+export const productBatchSchema = z.object({
+  productId: z.string().min(1),
+  batchCode: z.string().optional(),
+  quantity: z.coerce.number().int().positive(),
+  expirationDate: z.string().min(1, "La fecha de vencimiento es obligatoria"),
+});
+
+export const storeSettingsSchema = z.object({
+  name: z.string().min(2, "El nombre del comercio es obligatorio"),
+  city: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  businessType: z.string().optional(),
+  currency: z.string().default("ARS"),
+  logoUrl: z.string().optional(),
+  openingHours: z.string().optional(),
+  expirationAlertDays: z.coerce.number().min(1).max(365),
+  defaultDeliveryFee: z.coerce.number().min(0),
+});

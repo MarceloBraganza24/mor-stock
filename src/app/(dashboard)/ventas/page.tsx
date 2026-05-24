@@ -167,8 +167,21 @@ export default async function VentasPage({ searchParams }: Props) {
 
                   <td className="px-4 py-3">
                     {sale.items.map((item: any) => (
-                      <div key={`${sale._id}-${item.product}`}>
-                        {item.quantity}x {item.name}
+                      <div key={`${sale._id}-${item.product}`} className="mb-2">
+                        <p>
+                          {item.quantity}x {item.name}
+                        </p>
+
+                        {item.batches?.length > 0 && (
+                          <div className="mt-1 space-y-1 text-xs text-white/40">
+                            {item.batches.map((batch: any) => (
+                              <p key={batch.batch}>
+                                Lote: {batch.batchCode || "-"} · Cant: {batch.quantity} · Vence:{" "}
+                                {new Date(batch.expirationDate).toLocaleDateString("es-AR")}
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </td>

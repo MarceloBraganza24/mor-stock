@@ -11,6 +11,7 @@ import { CashRegister } from "@/models/CashRegister";
 import { CashMovement } from "@/models/CashMovement";
 import { Customer } from "@/models/Customer";
 import { CreditMovement } from "@/models/CreditMovement";
+import { ProductBatch } from "@/models/ProductBatch";
 
 const createSaleSchema = z.object({
   paymentMethod: z.enum([
@@ -87,6 +88,41 @@ export async function createSale(input: unknown) {
     const subtotal = product.salePrice * item.quantity;
     const itemProfit = (product.salePrice - product.costPrice) * item.quantity;
 
+    const usedBatches = [];
+    let remainingToDiscount = item.quantity;
+
+    const batches = await ProductBatch.find({
+      store: session.user.store,
+      product: product._id,
+      isActive: true,
+      quantity: { $gt: 0 },
+    }).sort({ expirationDate: 1 });
+
+    for (const batch of batches) {
+      if (remainingToDiscount <= 0) break;
+
+      const discount = Math.min(batch.quantity, remainingToDiscount);
+
+      batch.quantity -= discount;
+      remainingToDiscount -= discount;
+
+      usedBatches.push({
+        batch: batch._id,
+        batchCode: batch.batchCode || "",
+        expirationDate: batch.expirationDate,
+        quantity: discount,
+      });
+
+      if (batch.quantity <= 0) {
+        batch.isActive = false;
+      }
+
+      await batch.save();
+    }
+
+    product.stock -= item.quantity;
+    await product.save();
+
     saleItems.push({
       product: product._id,
       name: product.name,
@@ -94,13 +130,11 @@ export async function createSale(input: unknown) {
       unitPrice: product.salePrice,
       costPrice: product.costPrice,
       subtotal,
+      batches: usedBatches,
     });
 
     total += subtotal;
     profit += itemProfit;
-
-    product.stock -= item.quantity;
-    await product.save();
   }
 
   const sale = await Sale.create({
@@ -258,6 +292,21 @@ export async function cancelSale(saleId: string) {
         $inc: { stock: item.quantity },
       }
     );
+    if (item.batches && item.batches.length > 0) {
+      for (const usedBatch of item.batches) {
+        const batch = await ProductBatch.findOne({
+          _id: usedBatch.batch,
+          store: session.user.store,
+          product: item.product,
+        });
+
+        if (batch) {
+          batch.quantity += usedBatch.quantity;
+          batch.isActive = true;
+          await batch.save();
+        }
+      }
+    }
   }
 
   if (sale.paymentMethod === "EFECTIVO") {

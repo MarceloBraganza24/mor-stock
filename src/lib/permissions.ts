@@ -18,6 +18,10 @@ export const permissions = {
   motomandado: ["DELIVERY"],
   compras: ["OWNER", "SUPER_ADMIN", "STOCKER"],
   cobros: ["OWNER", "SUPER_ADMIN"],
+  finanzas: ["OWNER", "SUPER_ADMIN"],
+  vencimientos: ["OWNER", "SUPER_ADMIN", "STOCKER"],
+  configuracion: ["OWNER", "SUPER_ADMIN"],
+  onboarding: ["OWNER", "SUPER_ADMIN"],
 };
 
 export function canAccess(

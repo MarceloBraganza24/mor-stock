@@ -29,6 +29,13 @@ export default async function ComprasPage() {
         </p>
       </div>
 
+      <a
+        href={`/api/reportes/compras?from=${params.from || ""}&to=${params.to || ""}`}
+        className="inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
+      >
+        Exportar CSV
+      </a>
+
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
           <p className="text-sm text-white/50">Proveedores</p>

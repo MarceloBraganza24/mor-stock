@@ -12,6 +12,7 @@ import { CashMovement } from "@/models/CashMovement";
 import { Customer } from "@/models/Customer";
 import { CreditMovement } from "@/models/CreditMovement";
 import { ReturnAdjustment } from "@/models/ReturnAdjustment";
+import { ProductBatch } from "@/models/ProductBatch";
 
 const returnAdjustmentSchema = z.object({
   saleId: z.string().min(1, "Venta inválida"),
@@ -82,6 +83,22 @@ export async function createReturnAdjustment(formData: FormData) {
         $inc: { stock: item.quantity },
       }
     );
+
+    if (item.batches && item.batches.length > 0) {
+      for (const usedBatch of item.batches) {
+        const batch = await ProductBatch.findOne({
+          _id: usedBatch.batch,
+          store: session.user.store,
+          product: item.product,
+        });
+
+        if (batch) {
+          batch.quantity += usedBatch.quantity;
+          batch.isActive = true;
+          await batch.save();
+        }
+      }
+    }
   }
 
   let openCashRegister = null;

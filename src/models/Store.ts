@@ -2,37 +2,47 @@ import mongoose, { Schema, models } from "mongoose";
 
 const storeSchema = new Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    owner: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    city: {
+    name: { type: String, required: true, trim: true },
+    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+
+    city: { type: String, default: "", trim: true },
+    address: { type: String, default: "", trim: true },
+    phone: { type: String, default: "", trim: true },
+    businessType: { type: String, default: "Mercado", trim: true },
+    currency: { type: String, default: "ARS" },
+    logoUrl: { type: String, default: "" },
+
+    openingHours: {
       type: String,
       default: "",
       trim: true,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+
+    expirationAlertDays: {
+      type: Number,
+      default: 30,
     },
+
+    defaultDeliveryFee: {
+      type: Number,
+      default: 0,
+    },
+
     plan: {
       type: String,
       enum: ["FREE", "BASIC", "PRO"],
       default: "FREE",
     },
+
+    onboarding: {
+      storeCompleted: { type: Boolean, default: false },
+      firstProductCreated: { type: Boolean, default: false },
+      firstCashOpened: { type: Boolean, default: false },
+      completed: { type: Boolean, default: false },
+    },
+
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

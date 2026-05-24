@@ -20,6 +20,8 @@ export default auth((req) => {
     "/motomandado",
     "/compras",
     "/cobros",
+    "/finanzas",
+    "/vencimientos",
   ];
 
   const isProtected = protectedRoutes.some((route) =>
@@ -108,6 +110,18 @@ export default auth((req) => {
     );
   }
 
+  if (pathname.startsWith("/finanzas") && !canAccess(role, "finanzas")) {
+    return NextResponse.redirect(
+      new URL(getDefaultRouteByRole(role), req.nextUrl.origin)
+    );
+  }
+
+  if (pathname.startsWith("/vencimientos") && !canAccess(role, "vencimientos")) {
+    return NextResponse.redirect(
+      new URL(getDefaultRouteByRole(role), req.nextUrl.origin)
+    );
+  }
+
   return NextResponse.next();
 });
 
@@ -127,5 +141,7 @@ export const config = {
     "/motomandado/:path*",
     "/compras/:path*",
     "/cobros/:path*",
+    "/finanzas/:path*",
+    "/vencimientos/:path*",
   ],
 };

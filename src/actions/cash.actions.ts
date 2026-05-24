@@ -164,3 +164,27 @@ export async function closeCashRegister(formData: FormData) {
   revalidatePath("/caja");
   revalidatePath("/dashboard");
 }
+
+export async function reviewCashRegister(cashRegisterId: string) {
+  const session = await requireRoles(["OWNER"]);
+
+  if (!cashRegisterId) {
+    throw new Error("Caja inválida");
+  }
+
+  await connectDB();
+
+  await CashRegister.findOneAndUpdate(
+    {
+      _id: cashRegisterId,
+      store: session.user.store,
+      status: "CERRADA",
+    },
+    {
+      status: "REVISADA",
+    }
+  );
+
+  revalidatePath("/caja");
+  revalidatePath("/dashboard");
+}
