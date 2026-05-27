@@ -33,3 +33,24 @@ export type PlanKey = keyof typeof plans;
 export function getPlanLimits(plan?: string) {
   return plans[(plan as PlanKey) || "FREE"] || plans.FREE;
 }
+
+export function getRequiredPlanLabel(
+  feature?: "reports" | "advancedReports" | "delivery" | "purchases"
+) {
+  switch (feature) {
+    case "reports":
+      return "Plan Básico";
+
+    case "advancedReports":
+      return "Plan Pro";
+
+    case "delivery":
+      return "Plan Básico";
+
+    case "purchases":
+      return "Plan Básico";
+
+    default:
+      return null;
+  }
+}

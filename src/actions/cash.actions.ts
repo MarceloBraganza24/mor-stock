@@ -7,6 +7,8 @@ import { requireRoles } from "@/lib/auth-utils";
 import { cashMovementSchema } from "@/lib/validations";
 import { CashRegister } from "@/models/CashRegister";
 import { CashMovement } from "@/models/CashMovement";
+import { Store } from "@/models/Store";
+import { createAuditLog } from "@/lib/audit";
 
 export async function getOpenCashRegister() {
   const session = await requireRoles(["OWNER", "CASHIER"]);
@@ -78,13 +80,31 @@ export async function openCashRegister(formData: FormData) {
     throw new Error("Ya hay una caja abierta");
   }
 
-  await CashRegister.create({
+  const cashRegister = await CashRegister.create({
     store: session.user.store,
     openedBy: session.user.id,
     openingAmount,
     expectedAmount: openingAmount,
     status: "ABIERTA",
   });
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "OPEN_CASH_REGISTER",
+    entity: "CashRegister",
+    entityId: cashRegister._id.toString(),
+    description: `Abrió caja con $${openingAmount}`,
+  });
+
+  await Store.findOneAndUpdate(
+    {
+      _id: session.user.store,
+    },
+    {
+      "onboarding.firstCashOpened": true,
+    }
+  );
 
   revalidatePath("/caja");
   revalidatePath("/dashboard");
@@ -118,6 +138,19 @@ export async function addCashMovement(formData: FormData) {
     source: "MANUAL",
     amount: parsed.amount,
     description: parsed.description || "",
+  });
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "CREATE_CASH_MOVEMENT",
+    entity: "CashMovement",
+    description: `${parsed.type} manual de $${parsed.amount}`,
+    metadata: {
+      type: parsed.type,
+      amount: parsed.amount,
+      description: parsed.description,
+    },
   });
 
   if (parsed.type === "INGRESO") {
@@ -161,6 +194,20 @@ export async function closeCashRegister(formData: FormData) {
 
   await cashRegister.save();
 
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "CLOSE_CASH_REGISTER",
+    entity: "CashRegister",
+    entityId: cashRegister._id.toString(),
+    description: `Cerró caja con $${closingAmount}`,
+    metadata: {
+      expectedAmount: cashRegister.expectedAmount,
+      closingAmount,
+      difference: cashRegister.difference,
+    },
+  });
+
   revalidatePath("/caja");
   revalidatePath("/dashboard");
 }
@@ -184,6 +231,15 @@ export async function reviewCashRegister(cashRegisterId: string) {
       status: "REVISADA",
     }
   );
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "REVIEW_CASH_REGISTER",
+    entity: "CashRegister",
+    entityId: cashRegisterId,
+    description: "Marcó caja como revisada",
+  });
 
   revalidatePath("/caja");
   revalidatePath("/dashboard");

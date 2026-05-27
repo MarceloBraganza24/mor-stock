@@ -12,6 +12,8 @@ import { CashMovement } from "@/models/CashMovement";
 import { Customer } from "@/models/Customer";
 import { CreditMovement } from "@/models/CreditMovement";
 import { ProductBatch } from "@/models/ProductBatch";
+import { getActionError } from "@/lib/action-response";
+import { createAuditLog } from "@/lib/audit";
 
 const createSaleSchema = z.object({
   paymentMethod: z.enum([
@@ -40,159 +42,206 @@ const salesHistorySchema = z.object({
 });
 
 export async function createSale(input: unknown) {
+  try {
+    const session = await requireRoles(["OWNER", "CASHIER"]);
+
+    const parsed = createSaleSchema.parse(input);
+
+    await connectDB();
+
+    let customer = null;
+
+    if (parsed.paymentMethod === "FIADO") {
+      if (!parsed.customerId) {
+        return { error: "Seleccioná un cliente para vender fiado." };
+      }
+
+      customer = await Customer.findOne({
+        _id: parsed.customerId,
+        store: session.user.store,
+        isActive: true,
+      });
+
+      if (!customer) {
+        return { error: "Cliente no encontrado." };
+      }
+    }
+
+    const saleItems = [];
+    let total = 0;
+    let profit = 0;
+
+    for (const item of parsed.items) {
+      const product = await Product.findOne({
+        _id: item.productId,
+        store: session.user.store,
+        isActive: true,
+      });
+
+      if (!product) {
+        return { error: "Producto no encontrado." };
+      }
+
+      if (product.stock < item.quantity) {
+        return {
+          error: `Stock insuficiente para ${product.name}. Stock actual: ${product.stock}`,
+        };
+      }
+
+      const subtotal = product.salePrice * item.quantity;
+      const itemProfit = (product.salePrice - product.costPrice) * item.quantity;
+
+      const usedBatches = [];
+      let remainingToDiscount = item.quantity;
+
+      const batches = await ProductBatch.find({
+        store: session.user.store,
+        product: product._id,
+        isActive: true,
+        quantity: { $gt: 0 },
+      }).sort({ expirationDate: 1 });
+
+      for (const batch of batches) {
+        if (remainingToDiscount <= 0) break;
+
+        const discount = Math.min(batch.quantity, remainingToDiscount);
+
+        batch.quantity -= discount;
+        remainingToDiscount -= discount;
+
+        usedBatches.push({
+          batch: batch._id,
+          batchCode: batch.batchCode || "",
+          expirationDate: batch.expirationDate,
+          quantity: discount,
+        });
+
+        if (batch.quantity <= 0) {
+          batch.isActive = false;
+        }
+
+        await batch.save();
+      }
+
+      product.stock -= item.quantity;
+      await product.save();
+
+      saleItems.push({
+        product: product._id,
+        name: product.name,
+        quantity: item.quantity,
+        unitPrice: product.salePrice,
+        costPrice: product.costPrice,
+        subtotal,
+        batches: usedBatches,
+      });
+
+      total += subtotal;
+      profit += itemProfit;
+    }
+
+    const sale = await Sale.create({
+      store: session.user.store,
+      user: session.user.id,
+      customer: customer?._id || null,
+      items: saleItems,
+      total,
+      profit,
+      paymentMethod: parsed.paymentMethod,
+    });
+
+    await createAuditLog({
+      store: session.user.store,
+      user: session.user.id,
+      action: "CREATE_SALE",
+      entity: "Sale",
+      entityId: sale._id.toString(),
+      description: `Registró venta #${sale._id.toString().slice(-6)}`,
+      metadata: {
+        total,
+        paymentMethod: parsed.paymentMethod,
+      },
+    });
+
+    if (parsed.paymentMethod === "EFECTIVO") {
+      const openCashRegister = await CashRegister.findOne({
+        store: session.user.store,
+        status: "ABIERTA",
+      });
+
+      if (openCashRegister) {
+        await CashMovement.create({
+          store: session.user.store,
+          cashRegister: openCashRegister._id,
+          user: session.user.id,
+          sale: sale._id,
+          type: "INGRESO",
+          source: "VENTA_EFECTIVO",
+          amount: total,
+          description: `Venta en efectivo #${sale._id.toString().slice(-6)}`,
+        });
+
+        openCashRegister.expectedAmount += total;
+        await openCashRegister.save();
+      }
+    }
+
+    if (parsed.paymentMethod === "FIADO" && customer) {
+      customer.balance += total;
+      await customer.save();
+
+      await CreditMovement.create({
+        store: session.user.store,
+        customer: customer._id,
+        user: session.user.id,
+        sale: sale._id,
+        type: "DEUDA",
+        paymentMethod: "NINGUNO",
+        amount: total,
+        description: `Venta fiada #${sale._id.toString().slice(-6)}`,
+      });
+    }
+
+    revalidatePath("/ventas");
+    revalidatePath("/productos");
+    revalidatePath("/dashboard");
+    revalidatePath("/caja");
+    revalidatePath("/clientes");
+
+    return {
+      success: true,
+      message: "Venta registrada correctamente.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: getActionError(error),
+    };
+  }
+}
+
+export async function getSaleTicket(saleId: string) {
   const session = await requireRoles(["OWNER", "CASHIER"]);
 
-  const parsed = createSaleSchema.parse(input);
+  if (!saleId) {
+    throw new Error("Venta inválida");
+  }
 
   await connectDB();
 
-  let customer = null;
-
-  if (parsed.paymentMethod === "FIADO") {
-    if (!parsed.customerId) {
-      return { error: "Seleccioná un cliente para vender fiado." };
-    }
-
-    customer = await Customer.findOne({
-      _id: parsed.customerId,
-      store: session.user.store,
-      isActive: true,
-    });
-
-    if (!customer) {
-      return { error: "Cliente no encontrado." };
-    }
-  }
-
-  const saleItems = [];
-  let total = 0;
-  let profit = 0;
-
-  for (const item of parsed.items) {
-    const product = await Product.findOne({
-      _id: item.productId,
-      store: session.user.store,
-      isActive: true,
-    });
-
-    if (!product) {
-      return { error: "Producto no encontrado." };
-    }
-
-    if (product.stock < item.quantity) {
-      return {
-        error: `Stock insuficiente para ${product.name}. Stock actual: ${product.stock}`,
-      };
-    }
-
-    const subtotal = product.salePrice * item.quantity;
-    const itemProfit = (product.salePrice - product.costPrice) * item.quantity;
-
-    const usedBatches = [];
-    let remainingToDiscount = item.quantity;
-
-    const batches = await ProductBatch.find({
-      store: session.user.store,
-      product: product._id,
-      isActive: true,
-      quantity: { $gt: 0 },
-    }).sort({ expirationDate: 1 });
-
-    for (const batch of batches) {
-      if (remainingToDiscount <= 0) break;
-
-      const discount = Math.min(batch.quantity, remainingToDiscount);
-
-      batch.quantity -= discount;
-      remainingToDiscount -= discount;
-
-      usedBatches.push({
-        batch: batch._id,
-        batchCode: batch.batchCode || "",
-        expirationDate: batch.expirationDate,
-        quantity: discount,
-      });
-
-      if (batch.quantity <= 0) {
-        batch.isActive = false;
-      }
-
-      await batch.save();
-    }
-
-    product.stock -= item.quantity;
-    await product.save();
-
-    saleItems.push({
-      product: product._id,
-      name: product.name,
-      quantity: item.quantity,
-      unitPrice: product.salePrice,
-      costPrice: product.costPrice,
-      subtotal,
-      batches: usedBatches,
-    });
-
-    total += subtotal;
-    profit += itemProfit;
-  }
-
-  const sale = await Sale.create({
+  const sale = await Sale.findOne({
+    _id: saleId,
     store: session.user.store,
-    user: session.user.id,
-    customer: customer?._id || null,
-    items: saleItems,
-    total,
-    profit,
-    paymentMethod: parsed.paymentMethod,
-  });
+  })
+    .populate("customer", "name")
+    .populate("user", "name role")
+    .populate("store", "name city address phone currency logoUrl");
 
-  if (parsed.paymentMethod === "EFECTIVO") {
-    const openCashRegister = await CashRegister.findOne({
-      store: session.user.store,
-      status: "ABIERTA",
-    });
-
-    if (openCashRegister) {
-      await CashMovement.create({
-        store: session.user.store,
-        cashRegister: openCashRegister._id,
-        user: session.user.id,
-        sale: sale._id,
-        type: "INGRESO",
-        source: "VENTA_EFECTIVO",
-        amount: total,
-        description: `Venta en efectivo #${sale._id.toString().slice(-6)}`,
-      });
-
-      openCashRegister.expectedAmount += total;
-      await openCashRegister.save();
-    }
+  if (!sale) {
+    throw new Error("Venta no encontrada");
   }
 
-  if (parsed.paymentMethod === "FIADO" && customer) {
-    customer.balance += total;
-    await customer.save();
-
-    await CreditMovement.create({
-      store: session.user.store,
-      customer: customer._id,
-      user: session.user.id,
-      sale: sale._id,
-      type: "DEUDA",
-      paymentMethod: "NINGUNO",
-      amount: total,
-      description: `Venta fiada #${sale._id.toString().slice(-6)}`,
-    });
-  }
-
-  revalidatePath("/ventas");
-  revalidatePath("/productos");
-  revalidatePath("/dashboard");
-  revalidatePath("/caja");
-  revalidatePath("/clientes");
-
-  return { success: true };
+  return JSON.parse(JSON.stringify(sale));
 }
 
 export async function getTodaySales() {
@@ -357,9 +406,23 @@ export async function cancelSale(saleId: string) {
     }
   }
 
+  
   sale.status = "CANCELADA";
   await sale.save();
-
+  
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "CANCEL_SALE",
+    entity: "Sale",
+    entityId: sale._id.toString(),
+    description: `Canceló venta #${sale._id.toString().slice(-6)}`,
+    metadata: {
+      total: sale.total,
+      paymentMethod: sale.paymentMethod,
+    },
+  });
+  
   revalidatePath("/ventas");
   revalidatePath("/productos");
   revalidatePath("/dashboard");

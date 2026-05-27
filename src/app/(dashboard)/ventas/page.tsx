@@ -149,6 +149,7 @@ export default async function VentasPage({ searchParams }: Props) {
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Usuario</th>
                 <th className="px-4 py-3">Acción</th>
+                <th className="px-4 py-3">Ticket</th>
               </tr>
             </thead>
 
@@ -202,6 +203,15 @@ export default async function VentasPage({ searchParams }: Props) {
 
                   <td className="px-4 py-3 text-white/70">
                     {sale.user?.name || "-"}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <a
+                      href={`/ventas/${sale._id}/ticket`}
+                      className="text-sm text-emerald-400 hover:text-emerald-300"
+                    >
+                      Imprimir
+                    </a>
                   </td>
 
                   <td className="px-4 py-3 text-right">

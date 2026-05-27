@@ -7,6 +7,9 @@ import { connectDB } from "@/lib/mongodb";
 import { requireRoles } from "@/lib/auth-utils";
 import { employeeSchema } from "@/lib/validations";
 import { User } from "@/models/User";
+import { assertCanCreateEmployee } from "@/lib/plan-utils";
+import { getActionError } from "@/lib/action-response";
+import { createAuditLog } from "@/lib/audit";
 
 export async function getEmployees() {
   const session = await requireRoles(["OWNER"]);
@@ -23,37 +26,67 @@ export async function getEmployees() {
 }
 
 export async function createEmployee(formData: FormData) {
-  const session = await requireRoles(["OWNER"]);
+  try {
+    const session = await requireRoles(["OWNER"]);
 
-  const parsed = employeeSchema.parse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    role: formData.get("role"),
-  });
+    const parsed = employeeSchema.parse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      role: formData.get("role"),
+    });
 
-  await connectDB();
+    await connectDB();
 
-  const existingUser = await User.findOne({
-    email: parsed.email.toLowerCase(),
-  });
+    await assertCanCreateEmployee(session.user.store);
 
-  if (existingUser) {
-    throw new Error("Ya existe un usuario con ese email");
+    const existingUser = await User.findOne({
+      email: parsed.email.toLowerCase(),
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: "Ya existe un usuario con ese email",
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(parsed.password, 10);
+
+    const employee = await User.create({
+      name: parsed.name,
+      email: parsed.email.toLowerCase(),
+      password: hashedPassword,
+      role: parsed.role,
+      store: session.user.store,
+      isActive: true,
+    });
+
+    await createAuditLog({
+      store: session.user.store,
+      user: session.user.id,
+      action: "CREATE_EMPLOYEE",
+      entity: "User",
+      entityId: employee._id.toString(),
+      description: `Creó empleado ${employee.name}`,
+      metadata: {
+        role: parsed.role,
+        email: parsed.email,
+      },
+    });
+
+    revalidatePath("/empleados");
+
+    return {
+      success: true,
+      message: "Empleado creado correctamente.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: getActionError(error),
+    };
   }
-
-  const hashedPassword = await bcrypt.hash(parsed.password, 10);
-
-  await User.create({
-    name: parsed.name,
-    email: parsed.email.toLowerCase(),
-    password: hashedPassword,
-    role: parsed.role,
-    store: session.user.store,
-    isActive: true,
-  });
-
-  revalidatePath("/empleados");
 }
 
 export async function deleteEmployee(employeeId: string) {
@@ -75,6 +108,15 @@ export async function deleteEmployee(employeeId: string) {
       isActive: false,
     }
   );
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "DELETE_EMPLOYEE",
+    entity: "User",
+    entityId: employeeId,
+    description: "Desactivó empleado",
+  });
 
   revalidatePath("/empleados");
 }

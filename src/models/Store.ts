@@ -42,6 +42,26 @@ const storeSchema = new Schema(
       completed: { type: Boolean, default: false },
     },
 
+    subscription: {
+      mercadoPagoPreapprovalId: {
+        type: String,
+        default: "",
+      },
+      status: {
+        type: String,
+        enum: ["NONE", "PENDING", "ACTIVE", "PAUSED", "CANCELLED"],
+        default: "NONE",
+      },
+      currentPeriodStart: {
+        type: Date,
+        default: null,
+      },
+      currentPeriodEnd: {
+        type: Date,
+        default: null,
+      },
+    },
+
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

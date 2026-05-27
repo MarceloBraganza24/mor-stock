@@ -5,29 +5,45 @@ import { connectDB } from "@/lib/mongodb";
 import { requireRoles } from "@/lib/auth-utils";
 import { deliveryOrderSchema } from "@/lib/validations";
 import { DeliveryOrder } from "@/models/DeliveryOrder";
+import { assertFeatureEnabled } from "@/lib/plan-utils";
+import { getActionError } from "@/lib/action-response";
 
 export async function createDeliveryOrder(formData: FormData) {
-  const session = await requireRoles(["OWNER", "CASHIER"]);
+  try {
+    const session = await requireRoles(["OWNER", "CASHIER"]);
 
-  const parsed = deliveryOrderSchema.parse({
-    customerName: formData.get("customerName"),
-    customerPhone: formData.get("customerPhone"),
-    address: formData.get("address"),
-    notes: formData.get("notes"),
-    deliveryFee: formData.get("deliveryFee"),
-  });
+    const parsed = deliveryOrderSchema.parse({
+      customerName: formData.get("customerName"),
+      customerPhone: formData.get("customerPhone"),
+      address: formData.get("address"),
+      notes: formData.get("notes"),
+      deliveryFee: formData.get("deliveryFee"),
+    });
 
-  await connectDB();
+    await connectDB();
 
-  await DeliveryOrder.create({
-    store: session.user.store,
-    requestedBy: session.user.id,
-    ...parsed,
-    status: "PENDIENTE",
-  });
+    await assertFeatureEnabled(session.user.store, "delivery");
 
-  revalidatePath("/envios");
-  revalidatePath("/motomandado");
+    await DeliveryOrder.create({
+      store: session.user.store,
+      requestedBy: session.user.id,
+      ...parsed,
+      status: "PENDIENTE",
+    });
+
+    revalidatePath("/envios");
+    revalidatePath("/motomandado");
+
+    return {
+      success: true,
+      message: "Solicitud de motomandado creada.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: getActionError(error),
+    };
+  }
 }
 
 export async function getStoreDeliveryOrders() {

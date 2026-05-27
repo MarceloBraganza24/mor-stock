@@ -12,6 +12,7 @@ import {
   customerPaymentSchema,
   customerSchema,
 } from "@/lib/validations";
+import { createAuditLog } from "@/lib/audit";
 
 export async function getCustomers() {
   const session = await requireRoles(["OWNER", "CASHIER"]);
@@ -111,6 +112,18 @@ export async function addDebt(formData: FormData) {
     description: parsed.description || "Deuda manual",
   });
 
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "ADD_CUSTOMER_DEBT",
+    entity: "Customer",
+    entityId: customer._id.toString(),
+    description: `Sumó deuda a ${customer.name}`,
+    metadata: {
+      amount: parsed.amount,
+    },
+  });
+
   revalidatePath("/clientes");
   revalidatePath("/dashboard");
 }
@@ -150,6 +163,19 @@ export async function registerPayment(formData: FormData) {
     paymentMethod: parsed.paymentMethod,
     amount: realPaymentAmount,
     description: parsed.description || "Pago recibido",
+  });
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "REGISTER_CUSTOMER_PAYMENT",
+    entity: "CreditMovement",
+    entityId: creditMovement._id.toString(),
+    description: `Registró pago de fiado de ${customer.name}`,
+    metadata: {
+      amount: realPaymentAmount,
+      paymentMethod: parsed.paymentMethod,
+    },
   });
 
   if (parsed.paymentMethod === "EFECTIVO") {

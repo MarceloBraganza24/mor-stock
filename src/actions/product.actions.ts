@@ -8,6 +8,9 @@ import { productSchema } from "@/lib/validations";
 import { StockMovement } from "@/models/StockMovement";
 import { stockAdjustmentSchema } from "@/lib/validations";
 import { redirect } from "next/navigation";
+import { assertCanCreateProduct } from "@/lib/plan-utils";
+import { getActionError } from "@/lib/action-response";
+import { createAuditLog } from "@/lib/audit";
 
 export async function getProducts(filters?: {
   query?: string;
@@ -57,33 +60,57 @@ export async function getProductCategories() {
 }
 
 export async function createProduct(formData: FormData) {
-  const redirectTo = String(formData.get("redirectTo") || "");
-  const session = await requireRoles(["OWNER", "STOCKER"]);
+  try {
+    const session = await requireRoles(["OWNER", "STOCKER"]);
 
-  const parsed = productSchema.parse({
-    name: formData.get("name"),
-    barcode: formData.get("barcode"),
-    category: formData.get("category"),
-    costPrice: formData.get("costPrice"),
-    salePrice: formData.get("salePrice"),
-    stock: formData.get("stock"),
-    minStock: formData.get("minStock"),
-  });
+    const redirectTo = String(formData.get("redirectTo") || "");
 
-  await connectDB();
+    const parsed = productSchema.parse({
+      name: formData.get("name"),
+      barcode: formData.get("barcode"),
+      category: formData.get("category"),
+      costPrice: formData.get("costPrice"),
+      salePrice: formData.get("salePrice"),
+      stock: formData.get("stock"),
+      minStock: formData.get("minStock"),
+    });
 
-  await Product.create({
-    store: session.user.store,
-    ...parsed,
-    category: parsed.category || "General",
-  });
+    await connectDB();
 
-  revalidatePath("/productos");
-  revalidatePath("/ventas");
-  revalidatePath("/dashboard");
+    await assertCanCreateProduct(session.user.store);
 
-  if (redirectTo) {
-    redirect(redirectTo);
+    const product = await Product.create({
+      store: session.user.store,
+      ...parsed,
+      category: parsed.category || "General",
+    });
+
+    await createAuditLog({
+      store: session.user.store,
+      user: session.user.id,
+      action: "CREATE_PRODUCT",
+      entity: "Product",
+      entityId: product._id.toString(),
+      description: `Creó producto ${product.name}`,
+    });
+
+    revalidatePath("/productos");
+    revalidatePath("/ventas");
+    revalidatePath("/dashboard");
+
+    if (redirectTo) {
+      redirect(redirectTo);
+    }
+
+    return {
+      success: true,
+      message: "Producto creado correctamente.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: getActionError(error),
+    };
   }
 }
 
@@ -114,6 +141,15 @@ export async function updateProduct(productId: string, formData: FormData) {
     }
   );
 
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "UPDATE_PRODUCT",
+    entity: "Product",
+    entityId: productId,
+    description: "Actualizó producto",
+  });
+
   revalidatePath("/productos");
   revalidatePath("/ventas");
   revalidatePath("/dashboard");
@@ -133,6 +169,15 @@ export async function deleteProduct(productId: string) {
       isActive: false,
     }
   );
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "DELETE_PRODUCT",
+    entity: "Product",
+    entityId: productId,
+    description: "Eliminó producto",
+  });
 
   revalidatePath("/productos");
   revalidatePath("/ventas");

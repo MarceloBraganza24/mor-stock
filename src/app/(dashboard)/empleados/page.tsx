@@ -4,6 +4,7 @@ import {
   getEmployees,
 } from "@/actions/employee.actions";
 import { TableContainer } from "@/components/ui/TableContainer";
+import { EmployeeCreateForm } from "@/components/EmployeeCreateForm";
 
 export default async function EmpleadosPage() {
   const employees = await getEmployees();
@@ -18,49 +19,7 @@ export default async function EmpleadosPage() {
         </p>
       </div>
 
-      <form
-        action={createEmployee}
-        className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-5"
-      >
-        <input
-          name="name"
-          placeholder="Nombre"
-          required
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
-        />
-
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
-        />
-
-        <input
-          name="password"
-          type="password"
-          placeholder="Contraseña"
-          required
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
-        />
-
-        <select
-            name="role"
-            required
-            className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
-            >
-            <option value="">Seleccionar rol</option>
-            <option value="CASHIER">Cajero: ventas + caja</option>
-            <option value="STOCKER">Repositor: productos + stock</option>
-            <option value="DELIVERY">Motomandado: panel de entregas</option>
-        </select>
-
-        <button className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">
-          Crear empleado
-        </button>
-      </form>
-
+      <EmployeeCreateForm />
 
         <TableContainer minWidth="1100px">
             

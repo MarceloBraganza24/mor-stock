@@ -1,9 +1,11 @@
 import Link from "next/link";
 import {
   AlertTriangle,
-  Box,
+  Bike,
+  Boxes,
   CreditCard,
   DollarSign,
+  Package,
   ShoppingCart,
   Users,
   Wallet,
@@ -25,10 +27,13 @@ export default async function DashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-sm font-medium text-emerald-400">Resumen general</p>
+        <p className="text-sm font-medium text-emerald-400">
+          Panel del dueño
+        </p>
         <h1 className="mt-2 text-3xl font-bold">Dashboard</h1>
         <p className="mt-2 text-white/50">
-          Estado real del comercio: ventas, caja, stock y fiados.
+          Estado general del comercio: ventas, caja, stock, cobros, compras y
+          alertas.
         </p>
       </div>
 
@@ -43,39 +48,75 @@ export default async function DashboardPage() {
         <MetricCard
           title="Ganancia estimada"
           value={`$${metrics.totalProfitToday}`}
-          subtitle="Según precio costo vs venta"
+          subtitle="Precio venta menos costo"
           icon={<ShoppingCart size={22} />}
         />
 
         <MetricCard
-          title="Productos activos"
-          value={metrics.productsCount}
-          subtitle={`${metrics.lowStockCount} con stock bajo`}
-          icon={<Box size={22} />}
+          title="Compras hoy"
+          value={`$${metrics.totalPurchasesToday}`}
+          subtitle="Mercadería registrada"
+          icon={<Package size={22} />}
+          danger
         />
 
         <MetricCard
-          title="Total fiado"
-          value={`$${metrics.totalDebt}`}
-          subtitle={`${metrics.customersWithDebtCount} clientes deben`}
-          icon={<Users size={22} />}
+          title="Neto del día"
+          value={`$${metrics.netToday}`}
+          subtitle="Ventas menos compras"
+          icon={<CreditCard size={22} />}
+          danger={metrics.netToday < 0}
         />
       </div>
 
-      <div className="mb-8 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          title="Productos activos"
+          value={metrics.productsCount}
+          subtitle={`${metrics.lowStockCount} con stock bajo`}
+          icon={<Boxes size={22} />}
+        />
+
+        <MetricCard
+          title="Por vencer"
+          value={metrics.expiringCount}
+          subtitle="Dentro de los próximos 30 días"
+          icon={<AlertTriangle size={22} />}
+          danger={metrics.expiringCount > 0}
+        />
+
+        <MetricCard
+          title="Fiado pendiente"
+          value={`$${metrics.totalDebt}`}
+          subtitle={`${metrics.customersWithDebt.length} clientes con deuda`}
+          icon={<Users size={22} />}
+          danger={metrics.totalDebt > 0}
+        />
+
+        <MetricCard
+          title="Envíos activos"
+          value={metrics.pendingDeliveries.length}
+          subtitle="Pendientes, tomados o en camino"
+          icon={<Bike size={22} />}
+        />
+      </div>
+
+      <div className="mb-8 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Ventas por método de pago</h2>
+              <h2 className="text-xl font-semibold">
+                Ventas por método de pago
+              </h2>
               <p className="mt-1 text-sm text-white/50">
-                Resumen de cobros del día.
+                Cobros registrados en ventas del día.
               </p>
             </div>
 
             <CreditCard className="text-emerald-400" size={24} />
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {paymentMethods.map((method) => (
               <div
                 key={method}
@@ -88,6 +129,13 @@ export default async function DashboardPage() {
               </div>
             ))}
           </div>
+
+          <Link
+            href="/cobros"
+            className="mt-5 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
+          >
+            Ver panel de cobros
+          </Link>
         </section>
 
         <section
@@ -97,7 +145,7 @@ export default async function DashboardPage() {
               : "border-red-500/20 bg-red-500/10"
           }`}
         >
-          <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">Estado de caja</h2>
               <p className="mt-1 text-sm text-white/50">
@@ -109,9 +157,9 @@ export default async function DashboardPage() {
           </div>
 
           {metrics.openCashRegister ? (
-            <div>
+            <>
               <p className="text-sm text-emerald-300">Caja abierta</p>
-              <p className="mt-3 text-3xl font-bold">
+              <p className="mt-3 text-4xl font-bold">
                 ${metrics.openCashRegister.expectedAmount}
               </p>
               <p className="mt-1 text-sm text-white/50">Esperado en caja</p>
@@ -122,13 +170,13 @@ export default async function DashboardPage() {
               >
                 Ver caja
               </Link>
-            </div>
+            </>
           ) : (
-            <div>
+            <>
               <p className="text-sm text-red-300">Caja cerrada</p>
               <p className="mt-3 text-2xl font-bold">Sin caja abierta</p>
               <p className="mt-1 text-sm text-white/50">
-                Abrí caja antes de empezar a vender en efectivo.
+                Abrí caja antes de vender en efectivo.
               </p>
 
               <Link
@@ -137,138 +185,123 @@ export default async function DashboardPage() {
               >
                 Abrir caja
               </Link>
-            </div>
+            </>
           )}
         </section>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Stock bajo</h2>
-            <AlertTriangle className="text-red-400" size={22} />
-          </div>
+        <Panel title="Stock bajo" href="/productos" hrefLabel="Ver productos">
+          {metrics.lowStockProducts.map((product: any) => (
+            <MiniItem
+              key={product._id}
+              title={product.name}
+              subtitle={`Stock: ${product.stock} · Mínimo: ${product.minStock}`}
+              danger
+            />
+          ))}
 
-          <div className="space-y-3">
-            {metrics.lowStockProducts.map((product: any) => (
-              <div
-                key={product._id}
-                className="rounded-xl border border-white/10 bg-neutral-900 p-4"
-              >
-                <p className="font-medium">{product.name}</p>
-                <p className="mt-1 text-sm text-white/50">
-                  Stock: {product.stock} · Mínimo: {product.minStock}
-                </p>
-              </div>
-            ))}
+          {metrics.lowStockProducts.length === 0 && (
+            <EmptyText text="No hay productos con stock bajo." />
+          )}
+        </Panel>
 
-            {metrics.lowStockProducts.length === 0 && (
-              <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-white/40">
-                No hay productos con stock bajo.
-              </p>
-            )}
-          </div>
+        <Panel
+          title="Productos por vencer"
+          href="/vencimientos"
+          hrefLabel="Ver vencimientos"
+        >
+          {metrics.expiringBatches.map((batch: any) => {
+            const expiration = new Date(batch.expirationDate);
+            const today = new Date();
+            const diffDays = Math.ceil(
+              (expiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+            );
 
-          <Link
-            href="/productos"
-            className="mt-5 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
-          >
-            Ver productos
-          </Link>
-        </section>
+            return (
+              <MiniItem
+                key={batch._id}
+                title={batch.product?.name || "Producto"}
+                subtitle={`Cant: ${batch.quantity} · ${
+                  diffDays < 0
+                    ? "Vencido"
+                    : diffDays === 0
+                    ? "Vence hoy"
+                    : `Vence en ${diffDays} días`
+                }`}
+                danger
+              />
+            );
+          })}
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <h2 className="mb-5 text-xl font-semibold">Últimas ventas</h2>
+          {metrics.expiringBatches.length === 0 && (
+            <EmptyText text="No hay productos próximos a vencer." />
+          )}
+        </Panel>
 
-          <div className="space-y-3">
-            {metrics.recentSales.map((sale: any) => (
-              <div
-                key={sale._id}
-                className="rounded-xl border border-white/10 bg-neutral-900 p-4"
-              >
-                <div className="flex justify-between gap-3">
-                  <div>
-                    <p className="font-medium">${sale.total}</p>
-                    <p className="mt-1 text-sm text-white/50">
-                      {sale.paymentMethod}
-                      {sale.customer?.name ? ` · ${sale.customer.name}` : ""}
-                    </p>
-                  </div>
+        <Panel title="Fiados" href="/clientes" hrefLabel="Ver clientes">
+          {metrics.customersWithDebt.map((customer: any) => (
+            <MiniItem
+              key={customer._id}
+              title={customer.name}
+              subtitle={`Debe $${customer.balance}`}
+              danger
+            />
+          ))}
 
-                  <p className="text-xs text-white/40">
-                    {new Date(sale.createdAt).toLocaleTimeString("es-AR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
+          {metrics.customersWithDebt.length === 0 && (
+            <EmptyText text="No hay clientes con deuda." />
+          )}
+        </Panel>
 
-            {metrics.recentSales.length === 0 && (
-              <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-white/40">
-                Todavía no hay ventas.
-              </p>
-            )}
-          </div>
+        <Panel title="Últimas ventas" href="/ventas" hrefLabel="Ir a ventas">
+          {metrics.recentSales.map((sale: any) => (
+            <MiniItem
+              key={sale._id}
+              title={`$${sale.total} · ${sale.paymentMethod}`}
+              subtitle={`${sale.user?.name || "-"} ${
+                sale.customer?.name ? `· ${sale.customer.name}` : ""
+              }`}
+            />
+          ))}
 
-          <Link
-            href="/ventas"
-            className="mt-5 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
-          >
-            Ir a ventas
-          </Link>
-        </section>
+          {metrics.recentSales.length === 0 && (
+            <EmptyText text="Todavía no hay ventas." />
+          )}
+        </Panel>
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <h2 className="mb-5 text-xl font-semibold">Movimientos de caja</h2>
+        <Panel title="Movimientos de caja" href="/caja" hrefLabel="Ver caja">
+          {metrics.recentCashMovements.map((movement: any) => (
+            <MiniItem
+              key={movement._id}
+              title={`${movement.type === "EGRESO" ? "-" : "+"}$${
+                movement.amount
+              }`}
+              subtitle={movement.description || movement.source}
+              danger={movement.type === "EGRESO"}
+            />
+          ))}
 
-          <div className="space-y-3">
-            {metrics.recentCashMovements.map((movement: any) => (
-              <div
-                key={movement._id}
-                className="rounded-xl border border-white/10 bg-neutral-900 p-4"
-              >
-                <div className="flex justify-between gap-3">
-                  <div>
-                    <p
-                      className={`font-medium ${
-                        movement.type === "EGRESO"
-                          ? "text-red-400"
-                          : "text-emerald-400"
-                      }`}
-                    >
-                      {movement.type === "EGRESO" ? "-" : "+"}${movement.amount}
-                    </p>
-                    <p className="mt-1 text-sm text-white/50">
-                      {movement.description || movement.source}
-                    </p>
-                  </div>
+          {metrics.recentCashMovements.length === 0 && (
+            <EmptyText text="No hay movimientos recientes." />
+          )}
+        </Panel>
 
-                  <p className="text-xs text-white/40">
-                    {new Date(movement.createdAt).toLocaleTimeString("es-AR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
+        <Panel title="Envíos activos" href="/envios" hrefLabel="Ver envíos">
+          {metrics.pendingDeliveries.map((order: any) => (
+            <MiniItem
+              key={order._id}
+              title={`${order.customerName} · ${order.status}`}
+              subtitle={`${order.address} ${
+                order.deliveryUser?.name ? `· ${order.deliveryUser.name}` : ""
+              }`}
+            />
+          ))}
 
-            {metrics.recentCashMovements.length === 0 && (
-              <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-white/40">
-                No hay movimientos de caja abiertos.
-              </p>
-            )}
-          </div>
-
-          <Link
-            href="/caja"
-            className="mt-5 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
-          >
-            Ver caja
-          </Link>
-        </section>
+          {metrics.pendingDeliveries.length === 0 && (
+            <EmptyText text="No hay envíos activos." />
+          )}
+        </Panel>
       </div>
     </div>
   );
@@ -279,21 +312,88 @@ function MetricCard({
   value,
   subtitle,
   icon,
+  danger,
 }: {
   title: string;
   value: string | number;
   subtitle: string;
   icon: React.ReactNode;
+  danger?: boolean;
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
       <div className="flex items-center justify-between">
         <p className="text-sm text-white/50">{title}</p>
-        <div className="text-emerald-400">{icon}</div>
+        <div className={danger ? "text-red-400" : "text-emerald-400"}>
+          {icon}
+        </div>
       </div>
 
-      <h2 className="mt-4 text-3xl font-bold">{value}</h2>
+      <h2
+        className={`mt-4 text-3xl font-bold ${
+          danger ? "text-red-400" : "text-white"
+        }`}
+      >
+        {value}
+      </h2>
+
       <p className="mt-2 text-sm text-white/40">{subtitle}</p>
     </div>
+  );
+}
+
+function Panel({
+  title,
+  children,
+  href,
+  hrefLabel,
+}: {
+  title: string;
+  children: React.ReactNode;
+  href: string;
+  hrefLabel: string;
+}) {
+  return (
+    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold">{title}</h2>
+      </div>
+
+      <div className="space-y-3">{children}</div>
+
+      <Link
+        href={href}
+        className="mt-5 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
+      >
+        {hrefLabel}
+      </Link>
+    </section>
+  );
+}
+
+function MiniItem({
+  title,
+  subtitle,
+  danger,
+}: {
+  title: string;
+  subtitle: string;
+  danger?: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-neutral-900 p-4">
+      <p className={`font-medium ${danger ? "text-red-400" : "text-white"}`}>
+        {title}
+      </p>
+      <p className="mt-1 text-sm text-white/50">{subtitle}</p>
+    </div>
+  );
+}
+
+function EmptyText({ text }: { text: string }) {
+  return (
+    <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-white/40">
+      {text}
+    </p>
   );
 }

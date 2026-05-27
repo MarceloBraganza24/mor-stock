@@ -1,4 +1,6 @@
 import { getCurrentStore, updateStoreSettings } from "@/actions/store.actions";
+import { StoreLogoUpload } from "@/components/StoreLogoUpload";
+import { RestoreBackupForm } from "@/components/RestoreBackupForm";
 
 export default async function ConfiguracionPage() {
   const store = await getCurrentStore();
@@ -12,6 +14,13 @@ export default async function ConfiguracionPage() {
           Datos generales usados en tickets, reportes, envíos y alertas.
         </p>
       </div>
+
+      <a
+        href="/api/backup"
+        className="inline-flex rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
+      >
+        Descargar backup general
+      </a>
 
       <form
         action={updateStoreSettings}
@@ -32,7 +41,9 @@ export default async function ConfiguracionPage() {
           <option value="USD">USD - Dólares</option>
         </select>
 
-        <input name="logoUrl" defaultValue={store?.logoUrl || ""} placeholder="URL del logo" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3" />
+        <div className="md:col-span-2">
+          <StoreLogoUpload defaultLogoUrl={store?.logoUrl || ""} />
+        </div>
 
         <input name="openingHours" defaultValue={store?.openingHours || ""} placeholder="Horarios de atención" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3" />
 
@@ -44,6 +55,9 @@ export default async function ConfiguracionPage() {
           Guardar configuración
         </button>
       </form>
+      <div className="mt-8">
+        <RestoreBackupForm />
+      </div>
     </div>
   );
 }

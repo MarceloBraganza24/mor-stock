@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Sale } from "@/models/Sale";
 import { Purchase } from "@/models/Purchase";
 import { CashMovement } from "@/models/CashMovement";
+import { assertFeatureEnabled } from "@/lib/plan-utils";
 
 export async function getFinanceReport(filters?: {
   from?: string;
@@ -14,6 +15,8 @@ export async function getFinanceReport(filters?: {
 
   await connectDB();
 
+  await assertFeatureEnabled(session.user.store, "advancedReports");
+  
   const dateQuery: any = {};
 
   if (filters?.from) {

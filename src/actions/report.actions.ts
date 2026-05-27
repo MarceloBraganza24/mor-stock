@@ -3,6 +3,7 @@
 import { requireRoles } from "@/lib/auth-utils";
 import { connectDB } from "@/lib/mongodb";
 import { Sale } from "@/models/Sale";
+import { assertFeatureEnabled } from "@/lib/plan-utils";
 
 export async function getSalesReport(filters?: {
   from?: string;
@@ -12,6 +13,8 @@ export async function getSalesReport(filters?: {
 
   await connectDB();
 
+  await assertFeatureEnabled(session.user.store, "reports");
+  
   const query: any = {
     store: session.user.store,
     status: "COMPLETADA",

@@ -7,6 +7,8 @@ import { User } from "@/models/User";
 import { Store } from "@/models/Store";
 import { createSlug } from "@/lib/slug";
 import { signIn, signOut } from "@/auth";
+import { sendEmail } from "@/lib/email";
+import { sendWelcomeEmail } from "@/lib/email-templates";
 
 type RegisterInput = {
   name: string;
@@ -64,6 +66,8 @@ export async function registerOwner(data: RegisterInput) {
     city,
     plan: "FREE",
   });
+
+  await sendWelcomeEmail(email, store.name);
 
   user.store = store._id;
   await user.save();

@@ -189,7 +189,6 @@ export function SalesPoint({
   }
 
   function finishSale() {
-    setMessage("");
 
     startTransition(async () => {
       const result = await createSale({
@@ -201,14 +200,15 @@ export function SalesPoint({
         })),
       });
 
-      if (result?.error) {
+      if (!result.success) {
         setMessage(result.error);
         return;
       }
 
+      setMessage(result.message || "Venta registrada correctamente.");
+
       setCart([]);
       setCustomerId("");
-      setMessage("Venta registrada correctamente.");
       router.refresh();
     });
   }

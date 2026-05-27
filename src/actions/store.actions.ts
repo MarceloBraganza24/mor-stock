@@ -111,14 +111,22 @@ export async function getPlanUsage() {
   ]);
 
   const plan = store?.plan || "FREE";
-  const limits = getPlanLimits(plan);
+  const subscriptionStatus = store?.subscription?.status || "NONE";
+
+  const effectivePlan =
+    plan === "FREE" || subscriptionStatus === "ACTIVE" ? plan : "FREE";
+
+  const limits = getPlanLimits(effectivePlan);
 
   return JSON.parse(
     JSON.stringify({
       plan,
       limits,
+      subscription: store?.subscription || null,
       productsCount,
       employeesCount,
+      effectivePlan,
+      subscriptionStatus,
     })
   );
 }

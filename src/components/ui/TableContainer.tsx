@@ -8,8 +8,10 @@ export function TableContainer({
   minWidth = "900px",
 }: TableContainerProps) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-white/10">
-      <div style={{ minWidth }}>{children}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
+      <div className="overflow-x-auto">
+        <div style={{ minWidth }}>{children}</div>
+      </div>
     </div>
   );
 }

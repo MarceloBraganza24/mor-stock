@@ -13,6 +13,7 @@ import { Customer } from "@/models/Customer";
 import { CreditMovement } from "@/models/CreditMovement";
 import { ReturnAdjustment } from "@/models/ReturnAdjustment";
 import { ProductBatch } from "@/models/ProductBatch";
+import { createAuditLog } from "@/lib/audit";
 
 const returnAdjustmentSchema = z.object({
   saleId: z.string().min(1, "Venta inválida"),
@@ -166,6 +167,20 @@ export async function createReturnAdjustment(formData: FormData) {
     reason: parsed.reason || "",
     affectsCashRegister,
     cashRegister: openCashRegister?._id || null,
+  });
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "CREATE_RETURN",
+    entity: "ReturnAdjustment",
+    entityId: sale._id.toString(),
+    description: `Registró devolución de venta #${sale._id.toString().slice(-6)}`,
+    metadata: {
+      amount: sale.total,
+      paymentMethod: sale.paymentMethod,
+      reason: parsed.reason,
+    },
   });
 
   sale.status = "DEVUELTA";

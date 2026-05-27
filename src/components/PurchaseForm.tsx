@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createPurchase } from "@/actions/purchase.actions";
+import { FormMessage } from "@/components/ui/FormMessage";
 
 type Product = {
   _id: string;
@@ -47,8 +48,10 @@ export function PurchaseForm({
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("EFECTIVO");
   const [notes, setNotes] = useState("");
-  const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const filteredProducts = useMemo(() => {
     const value = query.toLowerCase().trim();
@@ -118,7 +121,6 @@ export function PurchaseForm({
   }
 
   function submitPurchase() {
-    setMessage("");
 
     startTransition(async () => {
       const result = await createPurchase({
@@ -132,15 +134,18 @@ export function PurchaseForm({
         })),
       });
 
-      if (result?.error) {
-        setMessage(result.error);
+      if (!result.success) {
+        setErrorMessage(result.error);
+        setSuccessMessage("");
         return;
       }
+
+      setErrorMessage("");
+      setSuccessMessage(result.message || "Compra registrada correctamente.");
 
       setItems([]);
       setSupplierId("");
       setNotes("");
-      setMessage("Compra registrada correctamente.");
       router.refresh();
     });
   }
@@ -284,11 +289,10 @@ export function PurchaseForm({
             {isPending ? "Registrando..." : "Registrar compra"}
           </button>
 
-          {message && (
-            <p className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-emerald-400">
-              {message}
-            </p>
-          )}
+          <div className="mt-3 space-y-3">
+            <FormMessage message={successMessage} type="success" />
+            <FormMessage message={errorMessage} type="error" />
+          </div>
         </div>
       </section>
     </div>
