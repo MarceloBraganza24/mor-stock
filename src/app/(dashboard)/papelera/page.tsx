@@ -19,7 +19,7 @@ export default async function PapeleraPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Seguridad</p>
         <h1 className="mt-2 text-3xl font-bold">Papelera</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Restaurá elementos eliminados o borralos permanentemente.
         </p>
       </div>
@@ -28,7 +28,7 @@ export default async function PapeleraPage() {
         {sections.map((section) => (
           <section
             key={section.type}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+            className="app-card-2xl p-5"
           >
             <h2 className="text-xl font-semibold">{section.title}</h2>
 

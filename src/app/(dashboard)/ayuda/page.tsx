@@ -56,7 +56,7 @@ export default function AyudaPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Guía rápida</p>
         <h1 className="mt-2 text-3xl font-bold">Ayuda</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Instrucciones simples para operar el sistema en el día a día.
         </p>
       </div>

@@ -1,5 +1,4 @@
-import { AlertTriangle } from "lucide-react";
-import { logoutUser } from "@/actions/auth.actions";
+import { AlertTriangle, Link } from "lucide-react";
 
 export default function ComercioSuspendidoPage() {
   return (
@@ -16,11 +15,12 @@ export default function ComercioSuspendidoPage() {
           del sistema para reactivar el acceso.
         </p>
 
-        <form action={logoutUser} className="mt-6">
-          <button className="rounded-xl bg-red-500 px-5 py-3 font-semibold text-white hover:bg-red-400">
-            Cerrar sesión
-          </button>
-        </form>
+        <Link
+          href="/api/auth/signout?callbackUrl=/login"
+          className="flex w-full items-center gap-3 rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+        >
+          Cerrar sesión
+        </Link>
       </div>
     </div>
   );

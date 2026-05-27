@@ -35,6 +35,12 @@ type PaymentMethod =
   | "QR"
   | "FIADO";
 
+const inputClass =
+"min-h-12 app-input text-base outline-none transition focus:border-emerald-500";
+
+const cardClass =
+  "rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5";
+
 export function SalesPoint({
   products,
   customers,
@@ -201,7 +207,7 @@ export function SalesPoint({
       });
 
       if (!result.success) {
-        setMessage(result.error);
+        setMessage(result.error || "Error al registrar la venta");
         return;
       }
 
@@ -269,8 +275,8 @@ export function SalesPoint({
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+    <div className="grid gap-4 xl:grid-cols-[1fr_430px] 2xl:grid-cols-[1fr_460px]">
+      <section className={cardClass}>
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold sm:text-xl">Buscar producto</h2>
           <p className="text-sm text-white/40">
@@ -285,13 +291,13 @@ export function SalesPoint({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             placeholder="Buscar o escanear código"
-            className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-4 text-base outline-none focus:border-emerald-500"
+            className={`w-full ${inputClass}`}
           />
 
           <button
             type="button"
             onClick={() => setScannerMode((prev) => !prev)}
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+            className={`min-h-12 rounded-xl px-4 py-3 text-sm font-semibold transition ${
               scannerMode
                 ? "bg-emerald-500 text-neutral-950"
                 : "bg-white/10 text-white"
@@ -303,7 +309,7 @@ export function SalesPoint({
           <button
             type="button"
             onClick={openCameraScanner}
-            className="rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/20"
+            className="min-h-12 rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
           >
             Cámara
           </button>
@@ -347,13 +353,13 @@ export function SalesPoint({
           </div>
         )}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 2xl:grid-cols-2">
           {filteredProducts.map((product) => (
             <button
               key={product._id}
               onClick={() => addToCart(product)}
               disabled={product.stock <= 0}
-              className="rounded-xl border border-white/10 bg-neutral-900 p-4 text-left transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-left transition hover:border-emerald-500/30 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -385,7 +391,7 @@ export function SalesPoint({
         )}
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 xl:sticky xl:top-24 xl:self-start">
+      <section className={`${cardClass} xl:sticky xl:top-24 xl:self-start`}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold sm:text-xl">Venta actual</h2>
@@ -401,12 +407,12 @@ export function SalesPoint({
           {cart.map((item) => (
             <div
               key={item.productId}
-              className="rounded-xl border border-white/10 bg-neutral-900 p-3"
+              className="rounded-2xl border border-white/10 bg-neutral-900 p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{item.name}</p>
-                  <p className="text-sm text-white/50">${item.unitPrice} c/u</p>
+                  <p className="text-sm app-muted">${item.unitPrice} c/u</p>
                 </div>
 
                 <button
@@ -437,7 +443,7 @@ export function SalesPoint({
                     onChange={(e) =>
                       updateQuantity(item.productId, Number(e.target.value))
                     }
-                    className="w-16 bg-neutral-950 px-2 py-2 text-center outline-none"
+                    className="w-16 bg-neutral-950 px-2 py-2 text-center outline-none" inputMode="numeric"
                   />
 
                   <button
@@ -464,12 +470,12 @@ export function SalesPoint({
         </div>
 
         <div className="mt-5">
-          <label className="text-sm text-white/50">Método de pago</label>
+          <label className="text-sm app-muted">Método de pago</label>
 
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-            className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-4 text-base outline-none focus:border-emerald-500"
+            className={`mt-2 w-full ${inputClass}`}
           >
             <option value="EFECTIVO">Efectivo</option>
             <option value="TRANSFERENCIA">Transferencia</option>
@@ -483,7 +489,7 @@ export function SalesPoint({
         {paymentMethod === "FIADO" && (
           <div className="mt-4 rounded-xl border border-white/10 bg-neutral-900 p-4">
             <div className="flex items-center justify-between gap-3">
-              <label className="text-sm text-white/50">Cliente</label>
+              <label className="text-sm app-muted">Cliente</label>
 
               <button
                 type="button"
@@ -497,7 +503,7 @@ export function SalesPoint({
             <select
               value={customerId}
               onChange={(e) => setCustomerId(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-4 text-base outline-none focus:border-emerald-500"
+              className={`mt-2 w-full ${inputClass}`}
             >
               <option value="">Seleccionar cliente</option>
               {customers.map((customer) => (
@@ -521,22 +527,22 @@ export function SalesPoint({
                   name="name"
                   placeholder="Nombre del cliente"
                   required
-                  className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-3 outline-none focus:border-emerald-500"
+                  className={inputClass}
                 />
 
                 <input
                   name="phone"
                   placeholder="Teléfono"
-                  className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-3 outline-none focus:border-emerald-500"
+                  className={inputClass}
                 />
 
                 <input
                   name="notes"
                   placeholder="Notas"
-                  className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-3 outline-none focus:border-emerald-500"
+                  className={inputClass}
                 />
 
-                <button className="rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400">
+                <button className="min-h-12 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400">
                   Guardar cliente
                 </button>
               </form>
@@ -553,7 +559,7 @@ export function SalesPoint({
           <button
             onClick={finishSale}
             disabled={cart.length === 0 || isPending}
-            className="mt-5 w-full rounded-xl bg-emerald-500 py-4 text-base font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-5 min-h-14 w-full rounded-2xl bg-emerald-500 px-4 py-4 text-base font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? "Registrando..." : "Finalizar venta"}
           </button>

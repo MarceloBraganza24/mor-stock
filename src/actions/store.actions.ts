@@ -36,6 +36,7 @@ export async function updateStoreSettings(formData: FormData) {
     openingHours: formData.get("openingHours"),
     expirationAlertDays: formData.get("expirationAlertDays"),
     defaultDeliveryFee: formData.get("defaultDeliveryFee"),
+    theme: String(formData.get("theme") || "dark"),
   });
 
   await connectDB();

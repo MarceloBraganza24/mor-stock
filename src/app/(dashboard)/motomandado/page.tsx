@@ -12,7 +12,7 @@ export default async function MotomandadoPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Panel mobile</p>
         <h1 className="mt-2 text-3xl font-bold">Motomandado</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Tomá pedidos y actualizá el estado de las entregas.
         </p>
       </div>
@@ -21,7 +21,7 @@ export default async function MotomandadoPage() {
         {orders.map((order: any) => (
           <div
             key={order._id}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+            className="app-card-2xl p-5"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -34,7 +34,7 @@ export default async function MotomandadoPage() {
                 </h2>
 
                 <p className="mt-2 text-white/70">{order.address}</p>
-                <p className="mt-1 text-white/50">{order.customerPhone}</p>
+                <p className="mt-1 app-muted">{order.customerPhone}</p>
 
                 {order.notes && (
                   <p className="mt-3 rounded-xl bg-neutral-900 p-3 text-sm text-white/60">
@@ -49,7 +49,7 @@ export default async function MotomandadoPage() {
             </div>
 
             <div className="mt-4 rounded-xl bg-neutral-900 p-4">
-              <p className="text-sm text-white/50">Costo envío</p>
+              <p className="text-sm app-muted">Costo envío</p>
               <p className="text-2xl font-bold text-emerald-400">
                 ${order.deliveryFee}
               </p>

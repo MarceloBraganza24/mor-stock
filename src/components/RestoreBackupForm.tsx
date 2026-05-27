@@ -54,7 +54,7 @@ export function RestoreBackupForm() {
         type="file"
         accept="application/json"
         required
-        className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3"
+        className="mt-4 w-full app-input"
       />
 
       <button

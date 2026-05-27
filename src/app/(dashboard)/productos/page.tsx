@@ -1,5 +1,4 @@
 import {
-  createProduct,
   deleteProduct,
   getProductCategories,
   getProducts,
@@ -14,6 +13,7 @@ type Props = {
     query?: string;
     category?: string;
     lowStock?: string;
+    from?: string;
   }>;
 };
 
@@ -34,26 +34,26 @@ export default async function ProductosPage({ searchParams }: Props) {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Stock</p>
         <h1 className="mt-2 text-3xl font-bold">Productos</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Buscá, filtrá, cargá y editá productos del comercio.
         </p>
       </div>
 
       <form
         action="/productos"
-        className="mb-6 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-4"
+        className="mb-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:gap-4 sm:p-5 md:grid-cols-2 xl:grid-cols-4"
       >
         <input
           name="query"
           defaultValue={params.query || ""}
           placeholder="Buscar nombre o código"
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
         />
 
         <select
           name="category"
           defaultValue={params.category || "TODAS"}
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
         >
           <option value="TODAS">Todas las categorías</option>
           {categories.map((category: string) => (
@@ -66,13 +66,13 @@ export default async function ProductosPage({ searchParams }: Props) {
         <select
           name="lowStock"
           defaultValue={params.lowStock || "false"}
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
         >
           <option value="false">Todos los stocks</option>
           <option value="true">Solo stock bajo</option>
         </select>
 
-        <button className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400">
+        <button className="min-h-12 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:opacity-50">
           Filtrar
         </button>
       </form>
@@ -92,7 +92,7 @@ export default async function ProductosPage({ searchParams }: Props) {
       />
 
       <div className="mb-4">
-        <p className="text-sm text-white/50">
+        <p className="text-sm app-muted">
           Resultados encontrados:{" "}
           <span className="font-semibold text-white">{products.length}</span>
         </p>
@@ -105,22 +105,22 @@ export default async function ProductosPage({ searchParams }: Props) {
           return (
             <div
               key={product._id}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="app-card-2xl p-5"
             >
               <form
                 action={async (formData) => {
                   "use server";
                   await updateProduct(product._id, formData);
                 }}
-                className="grid gap-4 md:grid-cols-4"
+                className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4"
               >
-                <input name="name" defaultValue={product.name} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-                <input name="barcode" defaultValue={product.barcode} placeholder="Código" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-                <input name="category" defaultValue={product.category} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-                <input name="costPrice" type="number" defaultValue={product.costPrice} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-                <input name="salePrice" type="number" defaultValue={product.salePrice} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-                <input name="stock" type="number" defaultValue={product.stock} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-                <input name="minStock" type="number" defaultValue={product.minStock} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
+                <input name="name" defaultValue={product.name} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <input name="barcode" defaultValue={product.barcode} placeholder="Código" className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <input name="category" defaultValue={product.category} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <input name="costPrice" type="number" defaultValue={product.costPrice} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <input name="salePrice" type="number" defaultValue={product.salePrice} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <input name="stock" type="number" defaultValue={product.stock} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <input name="minStock" type="number" defaultValue={product.minStock} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
 
                 <div className="flex items-center gap-3">
                   {lowStock ? (
@@ -134,20 +134,20 @@ export default async function ProductosPage({ searchParams }: Props) {
                   )}
                 </div>
 
-                <button className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400">
+                <button className="min-h-12 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:opacity-50">
                   Guardar cambios
                 </button>
               </form>
 
               <form
                   action={adjustProductStock}
-                  className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-neutral-900 p-4 md:grid-cols-5"
+                  className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-neutral-900 p-4 sm:p-5 md:grid-cols-2 xl:grid-cols-5"
                 >
                   <input type="hidden" name="productId" value={product._id} />
 
                   <select
                     name="type"
-                    className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+                    className="min-h-12 rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-base outline-none focus:border-emerald-500"
                   >
                     <option value="SUMA">Sumar stock</option>
                     <option value="RESTA">Restar stock</option>
@@ -159,16 +159,16 @@ export default async function ProductosPage({ searchParams }: Props) {
                     type="number"
                     placeholder="Cantidad"
                     required
-                    className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+                    className="min-h-12 rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-base outline-none focus:border-emerald-500"
                   />
 
                   <input
                     name="reason"
                     placeholder="Motivo"
-                    className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500 md:col-span-2"
+                    className="min-h-12 rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-base outline-none focus:border-emerald-500"
                   />
 
-                  <button className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20">
+                  <button className="min-h-12 rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/20">
                     Aplicar ajuste
                   </button>
                 </form>
@@ -201,7 +201,7 @@ export default async function ProductosPage({ searchParams }: Props) {
             Auditoría de stock
           </p>
           <h2 className="mt-2 text-2xl font-bold">Movimientos de stock</h2>
-          <p className="mt-2 text-white/50">
+          <p className="mt-2 app-muted">
             Historial de reposiciones, ajustes y correcciones.
           </p>
         </div>

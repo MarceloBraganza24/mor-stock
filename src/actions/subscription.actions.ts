@@ -1,12 +1,16 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+
 import { requireRoles } from "@/lib/auth-utils";
 import { connectDB } from "@/lib/mongodb";
 import { Store } from "@/models/Store";
 import { mercadoPagoRequest } from "@/lib/mercadopago";
-import { revalidatePath } from "next/cache";
 import { createAuditLog } from "@/lib/audit";
+import {
+  sendSubscriptionPendingEmail,
+} from "@/lib/email-templates";
 
 const planPrices = {
   BASIC: 15,
@@ -18,56 +22,9 @@ const planNames = {
   PRO: "Plan Pro - Stock Local",
 };
 
-export async function cancelSubscription() {
-  const session = await requireRoles(["OWNER"]);
+type PaidPlan = "BASIC" | "PRO";
 
-  await connectDB();
-
-  const store = await Store.findOne({
-    _id: session.user.store,
-    owner: session.user.id,
-  });
-
-  if (!store) {
-    throw new Error("Comercio no encontrado");
-  }
-
-  const preapprovalId = store.subscription?.mercadoPagoPreapprovalId;
-
-  if (!preapprovalId) {
-    throw new Error("No hay suscripción activa para cancelar");
-  }
-
-  await mercadoPagoRequest(`/preapproval/${preapprovalId}`, {
-    method: "PUT",
-    body: JSON.stringify({
-      status: "cancelled",
-    }),
-  });
-
-  store.plan = "FREE";
-  store.subscription = {
-    mercadoPagoPreapprovalId: preapprovalId,
-    status: "CANCELLED",
-    currentPeriodStart: null,
-    currentPeriodEnd: null,
-  };
-
-  await store.save();
-
-  await createAuditLog({
-    store: session.user.store,
-    user: session.user.id,
-    action: "CANCEL_SUBSCRIPTION",
-    entity: "Store",
-    entityId: store._id.toString(),
-    description: "Canceló suscripción",
-  });
-
-  revalidatePath("/planes");
-}
-
-export async function createSubscriptionCheckout(plan: "BASIC" | "PRO") {
+export async function createSubscriptionCheckout(plan: PaidPlan) {
   const session = await requireRoles(["OWNER"]);
 
   await connectDB();
@@ -88,6 +45,10 @@ export async function createSubscriptionCheckout(plan: "BASIC" | "PRO") {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!appUrl) {
+    throw new Error("Falta configurar NEXT_PUBLIC_APP_URL");
+  }
 
   const subscription = await mercadoPagoRequest<{
     id: string;
@@ -126,7 +87,67 @@ export async function createSubscriptionCheckout(plan: "BASIC" | "PRO") {
     entity: "Store",
     entityId: store._id.toString(),
     description: `Inició checkout para plan ${plan}`,
+    metadata: {
+      plan,
+      preapprovalId: subscription.id,
+    },
   });
 
+  await sendSubscriptionPendingEmail(ownerEmail, plan);
+
   redirect(subscription.init_point);
+}
+
+export async function cancelSubscription() {
+  const session = await requireRoles(["OWNER"]);
+
+  await connectDB();
+
+  const store = await Store.findOne({
+    _id: session.user.store,
+    owner: session.user.id,
+  });
+
+  if (!store) {
+    throw new Error("Comercio no encontrado");
+  }
+
+  const preapprovalId =
+    store.subscription?.mercadoPagoPreapprovalId;
+
+  if (!preapprovalId) {
+    throw new Error("No hay suscripción activa para cancelar");
+  }
+
+  await mercadoPagoRequest(`/preapproval/${preapprovalId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      status: "cancelled",
+    }),
+  });
+
+  store.plan = "FREE";
+  store.subscription = {
+    mercadoPagoPreapprovalId: preapprovalId,
+    status: "CANCELLED",
+    currentPeriodStart: null,
+    currentPeriodEnd: null,
+  };
+
+  await store.save();
+
+  await createAuditLog({
+    store: session.user.store,
+    user: session.user.id,
+    action: "CANCEL_SUBSCRIPTION",
+    entity: "Store",
+    entityId: store._id.toString(),
+    description: "Canceló suscripción",
+    metadata: {
+      preapprovalId,
+    },
+  });
+
+  revalidatePath("/planes");
+  revalidatePath("/dashboard");
 }

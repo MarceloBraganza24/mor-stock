@@ -1,5 +1,6 @@
-import { auth } from "@/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+
 import {
   canAccessRole,
   getDefaultRouteByRole,
@@ -24,17 +25,22 @@ const protectedRoutes = [
   "/configuracion",
   "/onboarding",
   "/planes",
-  "/sin-permiso",
   "/papelera",
   "/superadmin",
   "/comercio-suspendido",
   "/soporte",
 ];
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth;
+export default async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
-  const role = req.auth?.user?.role;
+
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET,
+  });
+
+  const isLoggedIn = !!token;
+  const role = token?.role as string | undefined;
 
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
@@ -57,7 +63,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
@@ -82,7 +88,6 @@ export const config = {
     "/superadmin/:path*",
     "/soporte/:path*",
     "/comercio-suspendido",
-    "/sin-permiso",
     "/login",
     "/register",
   ],

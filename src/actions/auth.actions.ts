@@ -2,12 +2,15 @@
 
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
+
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { Store } from "@/models/Store";
+
 import { createSlug } from "@/lib/slug";
-import { signIn, signOut } from "@/auth";
-import { sendEmail } from "@/lib/email";
+import { AuthError } from "next-auth";
+import { signIn } from "@/auth";
+import { getDefaultRouteByRole } from "@/lib/permissions";
 import { sendWelcomeEmail } from "@/lib/email-templates";
 
 type RegisterInput = {
@@ -28,17 +31,25 @@ export async function registerOwner(data: RegisterInput) {
   const city = data.city?.trim() || "";
 
   if (!name || !email || !password || !storeName) {
-    return { error: "Completá todos los campos obligatorios." };
+    return {
+      error: "Completá todos los campos obligatorios.",
+    };
   }
 
   if (password.length < 6) {
-    return { error: "La contraseña debe tener al menos 6 caracteres." };
+    return {
+      error: "La contraseña debe tener al menos 6 caracteres.",
+    };
   }
 
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({
+    email,
+  });
 
   if (existingUser) {
-    return { error: "Ya existe un usuario con ese email." };
+    return {
+      error: "Ya existe un usuario con ese email.",
+    };
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -50,7 +61,8 @@ export async function registerOwner(data: RegisterInput) {
     role: "OWNER",
   });
 
-  let baseSlug = createSlug(storeName);
+  const baseSlug = createSlug(storeName);
+
   let slug = baseSlug;
   let counter = 1;
 
@@ -70,24 +82,36 @@ export async function registerOwner(data: RegisterInput) {
   await sendWelcomeEmail(email, store.name);
 
   user.store = store._id;
+
   await user.save();
 
   redirect("/login");
 }
 
 export async function loginUser(formData: FormData) {
-  const email = String(formData.get("email") || "");
-  const password = String(formData.get("password") || "");
+  try {
+    await connectDB();
 
-  await signIn("credentials", {
-    email,
-    password,
-    redirectTo: "/dashboard",
-  });
-}
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
 
-export async function logoutUser() {
-  await signOut({
-    redirectTo: "/login",
-  });
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      isActive: true,
+    });
+
+    const role = user?.role || "OWNER";
+
+    await signIn("credentials", {
+      email,
+      password,
+      redirectTo: getDefaultRouteByRole(role),
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      redirect("/login?error=credentials");
+    }
+
+    throw error;
+  }
 }

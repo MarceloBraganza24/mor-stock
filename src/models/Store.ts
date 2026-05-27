@@ -35,6 +35,12 @@ const storeSchema = new Schema(
       default: "FREE",
     },
 
+    theme: {
+      type: String,
+      enum: ["dark", "light"],
+      default: "dark",
+    },
+
     onboarding: {
       storeCompleted: { type: Boolean, default: false },
       firstProductCreated: { type: Boolean, default: false },

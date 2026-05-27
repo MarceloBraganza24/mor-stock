@@ -17,7 +17,7 @@ export function DeliveryCreateForm() {
       const result = await createDeliveryOrder(formData);
 
       if (!result.success) {
-        setError(result.error);
+        setError(result.error || "Ocurrió un error");
         return;
       }
 
@@ -28,13 +28,13 @@ export function DeliveryCreateForm() {
   return (
     <form
       action={handleSubmit}
-      className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-3"
+      className="mb-8 grid gap-4 app-card-2xl p-5 md:grid-cols-3"
     >
-      <input name="customerName" placeholder="Nombre del cliente" required className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-      <input name="customerPhone" placeholder="Teléfono" required className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-      <input name="address" placeholder="Dirección de entrega" required className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-      <input name="deliveryFee" type="number" placeholder="Costo envío" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500" />
-      <input name="notes" placeholder="Observaciones" className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500 md:col-span-2" />
+      <input name="customerName" placeholder="Nombre del cliente" required className="app-input outline-none focus:border-emerald-500" />
+      <input name="customerPhone" placeholder="Teléfono" required className="app-input outline-none focus:border-emerald-500" />
+      <input name="address" placeholder="Dirección de entrega" required className="app-input outline-none focus:border-emerald-500" />
+      <input name="deliveryFee" type="number" placeholder="Costo envío" className="app-input outline-none focus:border-emerald-500" />
+      <input name="notes" placeholder="Observaciones" className="app-input outline-none focus:border-emerald-500 md:col-span-2" />
 
       <button
         disabled={isPending}

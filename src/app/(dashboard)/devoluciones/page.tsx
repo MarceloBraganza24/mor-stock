@@ -3,6 +3,7 @@ import {
   getReturnAdjustments,
   getReturnableSales,
 } from "@/actions/return.actions";
+import { TableContainer } from "@/components/ui/TableContainer";
 
 export default async function DevolucionesPage() {
   const sales = await getReturnableSales();
@@ -20,24 +21,24 @@ export default async function DevolucionesPage() {
           Auditoría y ajustes
         </p>
         <h1 className="mt-2 text-3xl font-bold">Devoluciones</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Registrá devoluciones históricas, devolvé stock y dejá trazabilidad.
         </p>
       </div>
 
       <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <p className="text-sm text-white/50">Ventas disponibles</p>
+        <div className="app-card-2xl p-5">
+          <p className="text-sm app-muted">Ventas disponibles</p>
           <h2 className="mt-3 text-2xl font-bold">{sales.length}</h2>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <p className="text-sm text-white/50">Devoluciones registradas</p>
+        <div className="app-card-2xl p-5">
+          <p className="text-sm app-muted">Devoluciones registradas</p>
           <h2 className="mt-3 text-2xl font-bold">{adjustments.length}</h2>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <p className="text-sm text-white/50">Total devuelto</p>
+        <div className="app-card-2xl p-5">
+          <p className="text-sm app-muted">Total devuelto</p>
           <h2 className="mt-3 text-2xl font-bold text-red-400">
             ${totalReturned}
           </h2>
@@ -216,6 +217,5 @@ export default async function DevolucionesPage() {
 
         </div>
       </div>
-    </div>
   );
 }

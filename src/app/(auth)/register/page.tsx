@@ -7,7 +7,7 @@ export default function RegisterPage() {
         <div className="mb-8">
           <p className="text-sm text-emerald-400 font-medium">Stock Local</p>
           <h1 className="text-3xl font-bold mt-2">Crear cuenta</h1>
-          <p className="text-white/50 mt-2">
+          <p className="app-muted mt-2">
             Registrá tu comercio y empezá a controlar stock, ventas y fiados.
           </p>
         </div>
@@ -63,7 +63,7 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="text-sm text-white/50 mt-6 text-center">
+        <p className="text-sm app-muted mt-6 text-center">
           ¿Ya tenés cuenta?{" "}
           <a href="/login" className="text-emerald-400 hover:underline">
             Iniciar sesión

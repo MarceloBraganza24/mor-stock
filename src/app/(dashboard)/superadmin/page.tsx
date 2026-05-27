@@ -12,7 +12,7 @@ export default async function SuperAdminPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">SaaS Admin</p>
         <h1 className="mt-2 text-3xl font-bold">Super Admin</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Control general de comercios, planes, usuarios y estado del sistema.
         </p>
       </div>
@@ -24,7 +24,7 @@ export default async function SuperAdminPage() {
         <Card title="Ventas registradas" value={data.salesCount} />
       </div>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <section className="app-card-2xl p-5">
         <h2 className="text-xl font-semibold">Comercios registrados</h2>
 
         <div className="mt-5 overflow-x-auto">
@@ -98,12 +98,14 @@ export default async function SuperAdminPage() {
                     </div>
                   </td>
 
-                  <a
-                    href={`/superadmin/comercios/${store._id}`}
-                    className="text-sm text-emerald-400 hover:text-emerald-300"
-                  >
-                    Ver detalle
-                  </a>
+                  <td className="px-4 py-4">
+                    <a
+                      href={`/superadmin/comercios/${store._id}`}
+                      className="text-sm font-medium text-emerald-400 hover:text-emerald-300"
+                    >
+                      Ver detalle
+                    </a>
+                  </td>
 
                   <td className="px-4 py-3">
                     <form
@@ -146,8 +148,8 @@ export default async function SuperAdminPage() {
 
 function Card({ title, value }: { title: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <p className="text-sm text-white/50">{title}</p>
+    <div className="app-card-2xl p-5">
+      <p className="text-sm app-muted">{title}</p>
       <h2 className="mt-3 text-3xl font-bold">{value}</h2>
     </div>
   );

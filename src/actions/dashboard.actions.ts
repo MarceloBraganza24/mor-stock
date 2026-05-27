@@ -43,18 +43,13 @@ export async function getDashboardMetrics() {
     recentSales,
     recentCashMovements,
     pendingDeliveries,
+    notifications,
   ] = await Promise.all([
     Sale.find({
       store,
       status: "COMPLETADA",
       createdAt: { $gte: start, $lte: end },
     }).sort({ createdAt: -1 }),
-    
-    InternalNotification.find({
-      store,
-    })
-      .sort({ createdAt: -1 })
-      .limit(8),
       
     Purchase.find({
       store,
@@ -121,6 +116,12 @@ export async function getDashboardMetrics() {
       .populate("deliveryUser", "name")
       .sort({ createdAt: -1 })
       .limit(6),
+    
+    InternalNotification.find({
+      store,
+    })
+      .sort({ createdAt: -1 })
+      .limit(8),
   ]);
 
   const totalSalesToday = todaySales.reduce(

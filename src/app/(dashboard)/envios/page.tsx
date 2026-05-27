@@ -13,7 +13,7 @@ export default async function EnviosPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Motomandado</p>
         <h1 className="mt-2 text-3xl font-bold">Envíos a domicilio</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Solicitá motomandado y controlá el estado de cada entrega.
         </p>
       </div>
@@ -24,7 +24,7 @@ export default async function EnviosPage() {
         {orders.map((order: any) => (
           <div
             key={order._id}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+            className="app-card-2xl p-5"
           >
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
@@ -49,12 +49,12 @@ export default async function EnviosPage() {
                   {order.status}
                 </span>
 
-                <p className="mt-3 text-sm text-white/50">Motomandado</p>
+                <p className="mt-3 text-sm app-muted">Motomandado</p>
                 <p className="font-medium">
                   {order.deliveryUser?.name || "Sin tomar"}
                 </p>
 
-                <p className="mt-3 text-sm text-white/50">Costo envío</p>
+                <p className="mt-3 text-sm app-muted">Costo envío</p>
                 <p className="font-semibold">${order.deliveryFee}</p>
               </div>
             </div>

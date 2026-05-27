@@ -35,7 +35,7 @@ export function StoreLogoUpload({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="app-card-2xl p-5">
       <p className="text-sm font-medium text-white/70">Logo del comercio</p>
 
       {logoUrl && (
@@ -55,10 +55,10 @@ export function StoreLogoUpload({
           const file = e.target.files?.[0];
           if (file) handleUpload(file);
         }}
-        className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3"
+        className="mt-4 w-full app-input"
       />
 
-      {isPending && <p className="mt-2 text-sm text-white/50">Subiendo...</p>}
+      {isPending && <p className="mt-2 text-sm app-muted">Subiendo...</p>}
       {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>
   );

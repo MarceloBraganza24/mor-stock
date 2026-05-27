@@ -1,43 +1,50 @@
 import { loginUser } from "@/actions/auth.actions";
 
-export default function LoginPage() {
+type Props = {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: Props) {
+  const params = await searchParams;
+
   return (
-    <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center px-4">
+    <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl">
         <div className="mb-8">
-          <p className="text-sm text-emerald-400 font-medium">Stock Local</p>
-          <h1 className="text-3xl font-bold mt-2">Iniciar sesión</h1>
-          <p className="text-white/50 mt-2">
-            Entrá al panel de tu comercio.
-          </p>
+          <p className="text-sm font-medium text-emerald-400">MorStock</p>
+          <h1 className="mt-2 text-3xl font-bold">Iniciar sesión</h1>
+          <p className="mt-2 text-white/50">Entrá al panel de tu comercio.</p>
         </div>
+
+        {params.error === "credentials" && (
+          <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            Email o contraseña incorrectos.
+          </div>
+        )}
 
         <form action={loginUser} className="space-y-4">
           <input
             name="email"
             type="email"
             placeholder="Email"
-            className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-3 outline-none focus:border-emerald-500"
+            required
+            className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
           />
 
           <input
             name="password"
             type="password"
             placeholder="Contraseña"
-            className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-3 outline-none focus:border-emerald-500"
+            required
+            className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
           />
 
-          <button className="w-full rounded-xl bg-emerald-500 text-neutral-950 font-semibold py-3 hover:bg-emerald-400 transition">
+          <button className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400">
             Ingresar
           </button>
         </form>
-
-        <p className="text-sm text-white/50 mt-6 text-center">
-          ¿No tenés cuenta?{" "}
-          <a href="/register" className="text-emerald-400 hover:underline">
-            Crear cuenta
-          </a>
-        </p>
       </div>
     </main>
   );

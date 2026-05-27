@@ -34,7 +34,7 @@ export default async function OnboardingPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Primeros pasos</p>
         <h1 className="mt-2 text-3xl font-bold">Onboarding del comercio</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Dejá listo el comercio para operar ventas, stock, caja y reportes.
         </p>
       </div>
@@ -46,7 +46,7 @@ export default async function OnboardingPage() {
             : "border-white/10 bg-white/[0.03]"
         }`}
       >
-        <p className="text-sm text-white/50">Estado general</p>
+        <p className="text-sm app-muted">Estado general</p>
 
         <h2
           className={`mt-2 text-2xl font-bold ${
@@ -58,7 +58,7 @@ export default async function OnboardingPage() {
             : "Todavía faltan pasos"}
         </h2>
 
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Plan actual: <span className="text-white">{status.plan}</span>
         </p>
       </div>
@@ -71,7 +71,7 @@ export default async function OnboardingPage() {
             <Link
               key={step.title}
               href={step.href}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:bg-white/[0.06]"
+              className="app-card-2xl p-5 transition hover:bg-white/[0.06]"
             >
               <div className="flex items-start gap-4">
                 <div className="rounded-xl bg-white/10 p-3 text-emerald-400">
@@ -89,7 +89,7 @@ export default async function OnboardingPage() {
                     )}
                   </div>
 
-                  <p className="mt-2 text-white/50">{step.description}</p>
+                  <p className="mt-2 app-muted">{step.description}</p>
 
                   <p className="mt-4 text-sm font-medium text-emerald-400">
                     {step.completed ? "Completado" : "Completar paso"}

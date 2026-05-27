@@ -13,7 +13,7 @@ export default async function StoreDetailPage({ params }: Props) {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Soporte</p>
         <h1 className="mt-2 text-3xl font-bold">{data.store?.name}</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Detalle interno del comercio para soporte y administración.
         </p>
       </div>
@@ -25,7 +25,7 @@ export default async function StoreDetailPage({ params }: Props) {
         <Card title="Ventas" value={data.salesCount} />
       </div>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <section className="app-card-2xl p-5">
         <h2 className="text-xl font-semibold">Usuarios</h2>
 
         <div className="mt-5 grid gap-3">
@@ -35,7 +35,7 @@ export default async function StoreDetailPage({ params }: Props) {
               className="rounded-xl border border-white/10 bg-neutral-900 p-4"
             >
               <p className="font-medium">{user.name}</p>
-              <p className="text-sm text-white/50">{user.email}</p>
+              <p className="text-sm app-muted">{user.email}</p>
               <p className="text-sm text-emerald-400">{user.role}</p>
             </div>
           ))}
@@ -47,8 +47,8 @@ export default async function StoreDetailPage({ params }: Props) {
 
 function Card({ title, value }: { title: string; value: any }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <p className="text-sm text-white/50">{title}</p>
+    <div className="app-card-2xl p-5">
+      <p className="text-sm app-muted">{title}</p>
       <h2 className="mt-3 text-2xl font-bold">{value}</h2>
     </div>
   );

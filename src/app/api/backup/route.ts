@@ -12,6 +12,7 @@ import { ProductBatch } from "@/models/ProductBatch";
 import { DeliveryOrder } from "@/models/DeliveryOrder";
 import { Store } from "@/models/Store";
 import { sendBackupDownloadedEmail } from "@/lib/email-templates";
+import { createAuditLog } from "@/lib/audit";
 
 export async function GET() {
   const session = await requireRoles(["OWNER"]);
@@ -38,6 +39,15 @@ export async function GET() {
   if (storee?.owner?.email) {
     await sendBackupDownloadedEmail(storee.owner.email);
   }
+
+  await createAuditLog({
+    user: session.user.id,
+    action: "DOWNLOAD_BACKUP",
+    entity: "Backup",
+    store,
+    entityId: String(store),
+    description: "Descargó backup general",
+  });
 
   return new NextResponse(JSON.stringify(backup, null, 2), {
     headers: {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSaleTicket } from "@/actions/sale.actions";
+import { PrintTicketButton } from "@/components/PrintTicketButton";
 
 type Props = {
   params: Promise<{
@@ -15,7 +16,7 @@ export default async function TicketPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-neutral-950 p-4 text-white print:bg-white print:p-0 print:text-black">
-      <div className="mx-auto max-w-sm rounded-2xl border border-white/10 bg-white/[0.03] p-5 print:border-none print:bg-white print:p-4">
+      <div className="mx-auto max-w-sm app-card-2xl p-5 print:border-none print:bg-white print:p-4">
         <div className="mb-5 text-center">
           {store?.logoUrl && (
             <img
@@ -69,7 +70,7 @@ export default async function TicketPage({ params }: Props) {
               <div className="flex justify-between gap-3 text-sm">
                 <div>
                   <p className="font-medium">{item.name}</p>
-                  <p className="text-white/50 print:text-black/70">
+                  <p className="app-muted print:text-black/70">
                     {item.quantity} x ${item.unitPrice}
                   </p>
                 </div>
@@ -92,12 +93,7 @@ export default async function TicketPage({ params }: Props) {
         </p>
 
         <div className="mt-6 flex gap-3 print:hidden">
-          <button
-            onClick={() => window.print()}
-            className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 hover:bg-emerald-400"
-          >
-            Imprimir
-          </button>
+          <PrintTicketButton />
 
           <Link
             href="/ventas"

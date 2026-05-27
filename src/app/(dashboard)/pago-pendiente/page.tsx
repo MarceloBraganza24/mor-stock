@@ -13,7 +13,7 @@ export default function PagoPendientePage() {
           Pago pendiente de confirmación
         </h1>
 
-        <p className="mt-4 text-white/50">
+        <p className="mt-4 app-muted">
           Tu plan se activará automáticamente cuando Mercado Pago confirme la
           suscripción.
         </p>

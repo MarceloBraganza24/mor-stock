@@ -8,7 +8,7 @@ export default async function SinPermisoPage() {
   const defaultRoute = getDefaultRouteByRole(session?.user?.role);
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center">
+    <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white">
       <div className="max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
           <ShieldAlert size={32} />
@@ -27,6 +27,6 @@ export default async function SinPermisoPage() {
           Volver a mi panel
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

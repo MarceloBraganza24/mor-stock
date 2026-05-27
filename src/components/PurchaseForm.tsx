@@ -33,6 +33,15 @@ type PaymentMethod =
   | "QR"
   | "CUENTA_CORRIENTE";
 
+const inputClass =
+  "min-h-12 app-input text-base outline-none transition focus:border-emerald-500";
+
+const darkInputClass =
+  "min-h-12 rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-base outline-none transition focus:border-emerald-500";
+
+const cardClass =
+  "rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5";
+
 export function PurchaseForm({
   products,
   suppliers,
@@ -75,12 +84,17 @@ export function PurchaseForm({
 
   function addProduct(product: Product) {
     setItems((prev) => {
-      const exists = prev.find((item) => item.productId === product._id);
+      const exists = prev.find(
+        (item) => item.productId === product._id
+      );
 
       if (exists) {
         return prev.map((item) =>
           item.productId === product._id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+              }
             : item
         );
       }
@@ -117,10 +131,16 @@ export function PurchaseForm({
   }
 
   function removeItem(productId: string) {
-    setItems((prev) => prev.filter((item) => item.productId !== productId));
+    setItems((prev) =>
+      prev.filter(
+        (item) => item.productId !== productId
+      )
+    );
   }
 
   function submitPurchase() {
+    setErrorMessage("");
+    setSuccessMessage("");
 
     startTransition(async () => {
       const result = await createPurchase({
@@ -135,65 +155,97 @@ export function PurchaseForm({
       });
 
       if (!result.success) {
-        setErrorMessage(result.error);
-        setSuccessMessage("");
+        setErrorMessage(result.error || "Error al registrar la compra");
         return;
       }
 
-      setErrorMessage("");
-      setSuccessMessage(result.message || "Compra registrada correctamente.");
+      setSuccessMessage(
+        result.message ||
+          "Compra registrada correctamente."
+      );
 
       setItems([]);
       setSupplierId("");
       setNotes("");
+      setQuery("");
+
       router.refresh();
     });
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-        <h2 className="text-xl font-semibold">Buscar productos</h2>
-        <p className="mt-1 text-sm text-white/50">
-          Seleccioná los productos comprados para sumar stock.
+    <div className="grid gap-4 xl:grid-cols-[1fr_430px] 2xl:grid-cols-[1fr_460px]">
+      <section className={cardClass}>
+        <h2 className="text-xl font-semibold">
+          Buscar productos
+        </h2>
+
+        <p className="mt-1 text-sm app-muted">
+          Seleccioná productos para sumar
+          stock al inventario.
         </p>
 
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) =>
+            setQuery(e.target.value)
+          }
           placeholder="Buscar producto o código"
-          className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-4 outline-none focus:border-emerald-500"
+          className={`mt-4 w-full ${inputClass}`}
         />
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 2xl:grid-cols-2">
           {filteredProducts.map((product) => (
             <button
               key={product._id}
-              onClick={() => addProduct(product)}
-              className="rounded-xl border border-white/10 bg-neutral-900 p-4 text-left hover:bg-white/10"
+              type="button"
+              onClick={() =>
+                addProduct(product)
+              }
+              className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-left transition hover:border-emerald-500/30 hover:bg-white/[0.06]"
             >
-              <p className="font-medium">{product.name}</p>
+              <p className="font-medium">
+                {product.name}
+              </p>
+
               <p className="mt-1 text-sm text-white/40">
-                Stock: {product.stock} · Costo actual: ${product.costPrice}
+                Stock: {product.stock} ·
+                Costo actual: $
+                {product.costPrice}
               </p>
             </button>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 xl:sticky xl:top-24 xl:self-start">
-        <h2 className="text-xl font-semibold">Compra actual</h2>
+      <section
+        className={`${cardClass} xl:sticky xl:top-24 xl:self-start`}
+      >
+        <h2 className="text-xl font-semibold">
+          Compra actual
+        </h2>
 
         <div className="mt-4">
-          <label className="text-sm text-white/50">Proveedor</label>
+          <label className="text-sm app-muted">
+            Proveedor
+          </label>
+
           <select
             value={supplierId}
-            onChange={(e) => setSupplierId(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+            onChange={(e) =>
+              setSupplierId(e.target.value)
+            }
+            className={`mt-2 w-full ${inputClass}`}
           >
-            <option value="">Sin proveedor</option>
+            <option value="">
+              Sin proveedor
+            </option>
+
             {suppliers.map((supplier) => (
-              <option key={supplier._id} value={supplier._id}>
+              <option
+                key={supplier._id}
+                value={supplier._id}
+              >
                 {supplier.name}
               </option>
             ))}
@@ -201,18 +253,41 @@ export function PurchaseForm({
         </div>
 
         <div className="mt-4">
-          <label className="text-sm text-white/50">Forma de pago</label>
+          <label className="text-sm app-muted">
+            Forma de pago
+          </label>
+
           <select
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-            className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+            onChange={(e) =>
+              setPaymentMethod(
+                e.target
+                  .value as PaymentMethod
+              )
+            }
+            className={`mt-2 w-full ${inputClass}`}
           >
-            <option value="EFECTIVO">Efectivo</option>
-            <option value="TRANSFERENCIA">Transferencia</option>
-            <option value="DEBITO">Débito</option>
-            <option value="CREDITO">Crédito</option>
+            <option value="EFECTIVO">
+              Efectivo
+            </option>
+
+            <option value="TRANSFERENCIA">
+              Transferencia
+            </option>
+
+            <option value="DEBITO">
+              Débito
+            </option>
+
+            <option value="CREDITO">
+              Crédito
+            </option>
+
             <option value="QR">QR</option>
-            <option value="CUENTA_CORRIENTE">Cuenta corriente</option>
+
+            <option value="CUENTA_CORRIENTE">
+              Cuenta corriente
+            </option>
           </select>
         </div>
 
@@ -220,14 +295,21 @@ export function PurchaseForm({
           {items.map((item) => (
             <div
               key={item.productId}
-              className="rounded-xl border border-white/10 bg-neutral-900 p-4"
+              className="rounded-2xl border border-white/10 bg-neutral-900 p-4"
             >
-              <div className="flex justify-between gap-3">
-                <p className="font-medium">{item.name}</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-medium">
+                  {item.name}
+                </p>
 
                 <button
-                  onClick={() => removeItem(item.productId)}
-                  className="text-sm text-red-400"
+                  type="button"
+                  onClick={() =>
+                    removeItem(
+                      item.productId
+                    )
+                  }
+                  className="text-sm font-medium text-red-400 hover:text-red-300"
                 >
                   Quitar
                 </button>
@@ -236,62 +318,101 @@ export function PurchaseForm({
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <input
                   type="number"
+                  min="0"
+                  step="1"
                   value={item.quantity}
                   onChange={(e) =>
-                    updateItem(item.productId, "quantity", Number(e.target.value))
+                    updateItem(
+                      item.productId,
+                      "quantity",
+                      Number(
+                        e.target.value
+                      )
+                    )
                   }
                   placeholder="Cantidad"
-                  className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+                  className={darkInputClass}
                 />
 
                 <input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={item.unitCost}
                   onChange={(e) =>
-                    updateItem(item.productId, "unitCost", Number(e.target.value))
+                    updateItem(
+                      item.productId,
+                      "unitCost",
+                      Number(
+                        e.target.value
+                      )
+                    )
                   }
                   placeholder="Costo unitario"
-                  className="rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 outline-none focus:border-emerald-500"
+                  className={darkInputClass}
                 />
               </div>
 
               <p className="mt-3 text-right font-semibold">
-                Subtotal: ${item.quantity * item.unitCost}
+                Subtotal: $
+                {item.quantity *
+                  item.unitCost}
               </p>
             </div>
           ))}
 
           {items.length === 0 && (
-            <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-white/40">
-              Todavía no agregaste productos.
+            <p className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-white/40">
+              Todavía no agregaste
+              productos.
             </p>
           )}
         </div>
 
         <textarea
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) =>
+            setNotes(e.target.value)
+          }
           placeholder="Notas de la compra"
-          className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+          rows={4}
+          className={`mt-4 w-full resize-none ${inputClass}`}
         />
 
         <div className="mt-5 border-t border-white/10 pt-5">
-          <div className="flex justify-between">
-            <span className="text-white/60">Total compra</span>
-            <span className="text-3xl font-bold">${total}</span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-white/60">
+              Total compra
+            </span>
+
+            <span className="text-3xl font-bold">
+              ${total}
+            </span>
           </div>
 
           <button
             onClick={submitPurchase}
-            disabled={items.length === 0 || isPending}
-            className="mt-5 w-full rounded-xl bg-emerald-500 py-4 font-semibold text-neutral-950 hover:bg-emerald-400 disabled:opacity-50"
+            disabled={
+              items.length === 0 ||
+              isPending
+            }
+            className="mt-5 min-h-14 w-full rounded-2xl bg-emerald-500 px-4 py-4 text-base font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isPending ? "Registrando..." : "Registrar compra"}
+            {isPending
+              ? "Registrando..."
+              : "Registrar compra"}
           </button>
 
           <div className="mt-3 space-y-3">
-            <FormMessage message={successMessage} type="success" />
-            <FormMessage message={errorMessage} type="error" />
+            <FormMessage
+              message={successMessage}
+              type="success"
+            />
+
+            <FormMessage
+              message={errorMessage}
+              type="error"
+            />
           </div>
         </div>
       </section>

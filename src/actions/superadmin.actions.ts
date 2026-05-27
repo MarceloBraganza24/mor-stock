@@ -9,6 +9,10 @@ import { Product } from "@/models/Product";
 import { Sale } from "@/models/Sale";
 import { createAuditLog } from "@/lib/audit";
 import { Purchase } from "@/models/Purchase";
+import {
+  sendStoreReactivatedEmail,
+  sendStoreSuspendedEmail,
+} from "@/lib/email-templates";
 
 export async function getSuperAdminDashboard() {
   const session = await requireRoles(["SUPER_ADMIN"]);
@@ -63,18 +67,31 @@ export async function toggleStoreStatus(storeId: string, isActive: boolean) {
 
   await connectDB();
 
-  await Store.findByIdAndUpdate(storeId, {
-    isActive,
-  });
+  const store = await Store.findById(storeId).populate("owner", "email");
+
+  if (!store) {
+    throw new Error("Comercio no encontrado");
+  }
+
+  store.isActive = isActive;
+  await store.save();
 
   await createAuditLog({
-    store: storeId,
+    store: store._id.toString(),
     user: session.user.id,
-    action: isActive ? "SUPERADMIN_ACTIVATE_STORE" : "SUPERADMIN_SUSPEND_STORE",
+    action: isActive ? "REACTIVATE_STORE" : "SUSPEND_STORE",
     entity: "Store",
-    entityId: storeId,
-    description: isActive ? "Activó comercio" : "Suspendió comercio",
+    entityId: store._id.toString(),
+    description: isActive ? "Reactivó el comercio" : "Suspendió el comercio",
   });
+
+  if ((store.owner as any)?.email) {
+    if (isActive) {
+      await sendStoreReactivatedEmail((store.owner as any).email, store.name);
+    } else {
+      await sendStoreSuspendedEmail((store.owner as any).email, store.name);
+    }
+  }
 
   revalidatePath("/superadmin");
 }

@@ -19,13 +19,13 @@ export default async function CajaPage() {
       <div className="mb-8">
         <p className="text-sm font-medium text-emerald-400">Control diario</p>
         <h1 className="mt-2 text-3xl font-bold">Caja diaria</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Abrí caja, registrá movimientos y cerrá el día con trazabilidad.
         </p>
       </div>
 
       <a
-        href={`/api/reportes/compras?from=${params.from || ""}&to=${params.to || ""}`}
+        href="/api/reportes/caja"
         className="inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
       >
         Exportar CSV
@@ -34,7 +34,7 @@ export default async function CajaPage() {
       {!cashRegister ? (
         <form
           action={openCashRegister}
-          className="mb-8 max-w-xl rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+          className="mb-8 max-w-xl app-card-2xl p-5"
         >
           <h2 className="text-xl font-semibold">Abrir caja</h2>
 
@@ -42,7 +42,7 @@ export default async function CajaPage() {
             name="openingAmount"
             type="number"
             placeholder="Monto inicial"
-            className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+            className="mt-4 w-full app-input outline-none focus:border-emerald-500"
           />
 
           <button className="mt-4 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">
@@ -52,15 +52,15 @@ export default async function CajaPage() {
       ) : (
         <>
           <div className="mb-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <p className="text-sm text-white/50">Monto inicial</p>
+            <div className="app-card-2xl p-5">
+              <p className="text-sm app-muted">Monto inicial</p>
               <h2 className="mt-3 text-2xl font-bold">
                 ${cashRegister.openingAmount}
               </h2>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <p className="text-sm text-white/50">Esperado en caja</p>
+            <div className="app-card-2xl p-5">
+              <p className="text-sm app-muted">Esperado en caja</p>
               <h2 className="mt-3 text-2xl font-bold">
                 ${cashRegister.expectedAmount}
               </h2>
@@ -77,13 +77,13 @@ export default async function CajaPage() {
           <div className="mb-8 grid gap-6 lg:grid-cols-2">
             <form
               action={addCashMovement}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="app-card-2xl p-5"
             >
               <h2 className="text-xl font-semibold">Movimiento manual</h2>
 
               <select
                 name="type"
-                className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+                className="mt-4 w-full app-input outline-none focus:border-emerald-500"
               >
                 <option value="INGRESO">Ingreso</option>
                 <option value="EGRESO">Egreso</option>
@@ -94,13 +94,13 @@ export default async function CajaPage() {
                 type="number"
                 placeholder="Monto"
                 required
-                className="mt-3 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+                className="mt-3 w-full app-input outline-none focus:border-emerald-500"
               />
 
               <input
                 name="description"
                 placeholder="Descripción"
-                className="mt-3 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+                className="mt-3 w-full app-input outline-none focus:border-emerald-500"
               />
 
               <button className="mt-4 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">
@@ -110,11 +110,11 @@ export default async function CajaPage() {
 
             <form
               action={closeCashRegister}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="app-card-2xl p-5"
             >
               <h2 className="text-xl font-semibold">Cerrar caja</h2>
 
-              <p className="mt-2 text-sm text-white/50">
+              <p className="mt-2 text-sm app-muted">
                 Esperado en caja: ${cashRegister.expectedAmount}
               </p>
 
@@ -123,7 +123,7 @@ export default async function CajaPage() {
                 type="number"
                 placeholder="Monto contado real"
                 required
-                className="mt-4 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+                className="mt-4 w-full app-input outline-none focus:border-emerald-500"
               />
 
               <button className="mt-4 rounded-xl bg-red-500 px-5 py-3 font-semibold text-white hover:bg-red-400">
@@ -147,7 +147,7 @@ export default async function CajaPage() {
               <tbody>
                 {movements.map((movement: any) => (
                   <tr key={movement._id} className="border-t border-white/10">
-                    <td className="px-4 py-3 text-white/50">
+                    <td className="px-4 py-3 app-muted">
                       {new Date(movement.createdAt).toLocaleTimeString("es-AR", {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -261,6 +261,5 @@ export default async function CajaPage() {
       </TableContainer>
 
       </div>
-    </div>
   );
 }

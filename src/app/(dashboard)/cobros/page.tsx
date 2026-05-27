@@ -24,7 +24,7 @@ export default async function CobrosPage({ searchParams }: Props) {
           Dinero cobrado
         </p>
         <h1 className="mt-2 text-3xl font-bold">Cobros</h1>
-        <p className="mt-2 text-white/50">
+        <p className="mt-2 app-muted">
           Controlá toda la plata cobrada, separada de la caja física.
         </p>
       </div>
@@ -38,20 +38,20 @@ export default async function CobrosPage({ searchParams }: Props) {
 
       <form
         action="/cobros"
-        className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-3"
+        className="mb-8 grid gap-4 app-card-2xl p-5 md:grid-cols-3"
       >
         <input
           name="from"
           type="date"
           defaultValue={params.from || ""}
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+          className="app-input outline-none focus:border-emerald-500"
         />
 
         <input
           name="to"
           type="date"
           defaultValue={params.to || ""}
-          className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none focus:border-emerald-500"
+          className="app-input outline-none focus:border-emerald-500"
         />
 
         <button className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">
@@ -84,9 +84,9 @@ export default async function CobrosPage({ searchParams }: Props) {
       </div>
 
       <div className="mb-8 grid gap-6 xl:grid-cols-2">
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <section className="app-card-2xl p-5">
           <h2 className="text-xl font-semibold">Ventas por método</h2>
-          <p className="mt-1 text-sm text-white/50">
+          <p className="mt-1 text-sm app-muted">
             Plata cobrada directamente en ventas.
           </p>
 
@@ -96,7 +96,7 @@ export default async function CobrosPage({ searchParams }: Props) {
                 key={method}
                 className="rounded-xl border border-white/10 bg-neutral-900 p-4"
               >
-                <p className="text-sm text-white/50">{method}</p>
+                <p className="text-sm app-muted">{method}</p>
                 <p className="mt-2 text-2xl font-bold">
                   ${report.salesByMethod[method] || 0}
                 </p>
@@ -112,9 +112,9 @@ export default async function CobrosPage({ searchParams }: Props) {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <section className="app-card-2xl p-5">
           <h2 className="text-xl font-semibold">Pagos de fiado por método</h2>
-          <p className="mt-1 text-sm text-white/50">
+          <p className="mt-1 text-sm app-muted">
             Plata que entró por clientes que debían.
           </p>
 
@@ -124,7 +124,7 @@ export default async function CobrosPage({ searchParams }: Props) {
                 key={method}
                 className="rounded-xl border border-white/10 bg-neutral-900 p-4"
               >
-                <p className="text-sm text-white/50">{method}</p>
+                <p className="text-sm app-muted">{method}</p>
                 <p className="mt-2 text-2xl font-bold text-emerald-400">
                   ${report.creditPaymentsByMethod[method] || 0}
                 </p>
@@ -213,7 +213,7 @@ export default async function CobrosPage({ searchParams }: Props) {
           {report.customersWithDebt.map((customer: any) => (
             <div
               key={customer._id}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="app-card-2xl p-5"
             >
               <p className="font-semibold">{customer.name}</p>
               <p className="mt-2 text-2xl font-bold text-red-400">
@@ -245,8 +245,8 @@ function Card({
   danger?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <p className="text-sm text-white/50">{title}</p>
+    <div className="app-card-2xl p-5">
+      <p className="text-sm app-muted">{title}</p>
       <h2
         className={`mt-3 text-2xl font-bold ${
           highlight

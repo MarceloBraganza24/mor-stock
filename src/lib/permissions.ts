@@ -28,6 +28,7 @@ export type Section =
   | "soporte"
   | "estado"
   | "ayuda"
+  | "actividad"
 
 export const sectionPermissions: Record<
   Section,
@@ -36,7 +37,7 @@ export const sectionPermissions: Record<
     planFeature?: "reports" | "advancedReports" | "delivery" | "purchases";
   }
 > = {
-  dashboard: { roles: ["OWNER", "SUPER_ADMIN"] },
+  dashboard: { roles: ["OWNER"] },
   productos: { roles: ["OWNER", "SUPER_ADMIN", "STOCKER"] },
   ventas: { roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
   clientes: { roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
@@ -91,7 +92,7 @@ export const sectionPermissions: Record<
   papelera: {
     roles: ["OWNER", "SUPER_ADMIN"],
   },
-    superadmin: {
+  superadmin: {
     roles: ["SUPER_ADMIN"],
   },
   soporte: {
@@ -103,24 +104,39 @@ export const sectionPermissions: Record<
   ayuda: {
     roles: ["OWNER", "CASHIER", "STOCKER", "DELIVERY", "SUPER_ADMIN"],
   },
+  actividad: { roles: ["OWNER", "SUPER_ADMIN"] },
 };
-
 export function canAccessRole(
   role: string | undefined,
   section: Section
 ) {
   if (!role) return false;
 
-  return sectionPermissions[section].roles.includes(role as Role);
+  const permission = sectionPermissions[section];
+
+  if (!permission) {
+    console.warn(`Sección sin permisos configurados: ${section}`);
+    return false;
+  }
+
+  return permission.roles.includes(role as Role);
 }
 
-export function getDefaultRouteByRole(role: string | undefined) {
-  if (role === "OWNER" || role === "SUPER_ADMIN") return "/dashboard";
-  if (role === "CASHIER") return "/ventas";
-  if (role === "STOCKER") return "/productos";
-  if (role === "DELIVERY") return "/motomandado";
-
-  return "/login";
+export function getDefaultRouteByRole(role?: string) {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return "/superadmin";
+    case "OWNER":
+      return "/dashboard";
+    case "CASHIER":
+      return "/ventas";
+    case "DELIVERY":
+      return "/motomandado";
+    case "STOCKER":
+      return "/productos";
+    default:
+      return "/login";
+  }
 }
 
 export function getSectionFromPath(pathname: string): Section | null {
@@ -146,6 +162,7 @@ export function getSectionFromPath(pathname: string): Section | null {
   if (pathname.startsWith("/soporte")) return "soporte";
   if (pathname.startsWith("/estado")) return "estado";
   if (pathname.startsWith("/ayuda")) return "ayuda";
+  if (pathname.startsWith("/actividad")) return "actividad";
 
   return null;
 }

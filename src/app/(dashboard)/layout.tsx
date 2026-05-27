@@ -2,18 +2,11 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-import { logoutUser } from "@/actions/auth.actions";
 import { getCurrentStore } from "@/actions/store.actions";
 
-import {
-  canAccessRole,
-  sectionPermissions,
-} from "@/lib/permissions";
+import { canAccessRole, sectionPermissions, type Section } from "@/lib/permissions";
 
-import {
-  getPlanLimits,
-  getRequiredPlanLabel,
-} from "@/lib/plans";
+import { getPlanLimits, getRequiredPlanLabel } from "@/lib/plans";
 
 import {
   LayoutDashboard,
@@ -21,7 +14,6 @@ import {
   ShoppingCart,
   Users,
   Wallet,
-  LogOut,
   UserCog,
   RefreshCcw,
   Menu,
@@ -40,7 +32,40 @@ import {
   Activity,
 } from "lucide-react";
 
-const navItems = [
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ size?: number }>;
+  section: Section;
+};
+
+type VisibleNavItem = NavItem & {
+  locked?: boolean;
+  requiredPlan?: string | null;
+};
+
+const superAdminNavItems: NavItem[] = [
+  {
+    label: "Panel",
+    href: "/superadmin",
+    icon: Crown,
+    section: "superadmin",
+  },
+  {
+    label: "Soporte",
+    href: "/soporte",
+    icon: LifeBuoy,
+    section: "soporte",
+  },
+  {
+    label: "Estado",
+    href: "/estado",
+    icon: Activity,
+    section: "estado",
+  },
+];
+
+const commerceNavItems: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -155,24 +180,7 @@ const navItems = [
     icon: LifeBuoy,
     section: "soporte",
   },
-  {
-    label: "Estado",
-    href: "/estado",
-    icon: Activity,
-    section: "estado",
-  },
-  {
-    label: "Super Admin",
-    href: "/superadmin",
-    icon: Crown,
-    section: "superadmin",
-  },
-] as const;
-
-type VisibleNavItem = (typeof navItems)[number] & {
-  locked?: boolean;
-  requiredPlan?: string;
-};
+];
 
 export default async function DashboardLayout({
   children,
@@ -187,26 +195,21 @@ export default async function DashboardLayout({
 
   const role = session.user.role;
 
-  const store = await getCurrentStore();
+  const store = role === "SUPER_ADMIN" ? null : await getCurrentStore();
 
-  if (
-    role !== "SUPER_ADMIN" &&
-    store &&
-    !store.isActive
-  ) {
+  if (role !== "SUPER_ADMIN" && store && !store.isActive) {
     redirect("/comercio-suspendido");
   }
 
-  const planLimits = getPlanLimits(store?.plan);
+  const planLimits = getPlanLimits(store?.plan || "PRO");
+
+  const navItems =
+    role === "SUPER_ADMIN" ? superAdminNavItems : commerceNavItems;
 
   const visibleNavItems: VisibleNavItem[] = navItems
-    .filter((item) =>
-      canAccessRole(role, item.section)
-    )
+    .filter((item) => canAccessRole(role, item.section))
     .map((item) => {
-      const requiredFeature =
-        sectionPermissions[item.section]
-          ?.planFeature;
+      const requiredFeature = sectionPermissions[item.section]?.planFeature;
 
       if (!requiredFeature) {
         return {
@@ -215,38 +218,30 @@ export default async function DashboardLayout({
         };
       }
 
-      const enabled = Boolean(
-        planLimits[requiredFeature]
-      );
+      const enabled = Boolean(planLimits[requiredFeature]);
 
       return {
         ...item,
         locked: !enabled,
-        requiredPlan:
-          getRequiredPlanLabel(requiredFeature),
+        requiredPlan: getRequiredPlanLabel(requiredFeature),
       };
     });
 
+  const themeClass =
+    store?.theme === "light" ? "theme-light" : "theme-dark";
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
-      <aside className="fixed left-0 top-0 hidden h-screen w-64 border-r border-white/10 bg-neutral-950 p-5 lg:block">
-        <SidebarContent
-          role={role}
-          visibleNavItems={visibleNavItems}
-        />
+    <div className={`app-shell min-h-screen ${themeClass}`}>
+      <aside className="thin-scrollbar app-surface fixed left-0 top-0 hidden h-screen w-64 overflow-y-auto border-r p-5 lg:block">
+        <SidebarContent role={role} visibleNavItems={visibleNavItems} />
       </aside>
 
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 px-4 py-3 backdrop-blur lg:hidden">
+      <header className="app-surface sticky top-0 z-30 border-b px-4 py-3 backdrop-blur lg:hidden">
         <details className="group">
           <summary className="flex cursor-pointer list-none items-center justify-between">
             <div>
-              <p className="text-sm text-emerald-400">
-                Stock Local
-              </p>
-
-              <h1 className="font-semibold">
-                {session.user.name}
-              </h1>
+              <p className="text-sm text-emerald-400">Stock Local</p>
+              <h1 className="font-semibold">{session.user.name}</h1>
             </div>
 
             <div className="rounded-xl border border-white/10 p-2">
@@ -254,7 +249,7 @@ export default async function DashboardLayout({
             </div>
           </summary>
 
-          <div className="mt-4 rounded-2xl border border-white/10 bg-neutral-900 p-4">
+          <div className="app-surface-strong mt-4 rounded-2xl border p-4">
             <SidebarContent
               role={role}
               visibleNavItems={visibleNavItems}
@@ -265,21 +260,16 @@ export default async function DashboardLayout({
       </header>
 
       <main className="min-h-screen pb-20 lg:pb-0 lg:pl-64">
-        <header className="sticky top-0 z-10 hidden border-b border-white/10 bg-neutral-950/90 px-8 py-4 backdrop-blur lg:block">
+        <header className="app-surface sticky top-0 z-10 hidden border-b px-8 py-4 backdrop-blur lg:block">
           <div>
-            <p className="text-sm text-white/50">
-              Bienvenido
-            </p>
-
+            <p className="text-sm app-muted">Bienvenido</p>
             <h1 className="text-xl font-semibold">
               {session.user.name || "Usuario"}
             </h1>
           </div>
         </header>
 
-        <section className="p-4 sm:p-6 lg:p-8">
-          {children}
-        </section>
+        <section className="p-4 sm:p-6 lg:p-8">{children}</section>
       </main>
     </div>
   );
@@ -295,15 +285,13 @@ function SidebarContent({
   mobile?: boolean;
 }) {
   return (
-    <div className={mobile ? "" : "h-full"}>
+    <div className={mobile ? "" : "flex min-h-full flex-col"}>
       {!mobile && (
         <div className="mb-8">
-          <p className="text-sm font-medium text-emerald-400">
-            Stock Local
-          </p>
+          <p className="text-sm font-medium text-emerald-400">Stock Local</p>
 
           <h2 className="mt-1 text-xl font-bold">
-            Panel del comercio
+            {role === "SUPER_ADMIN" ? "Panel plataforma" : "Panel del comercio"}
           </h2>
 
           <RoleBadge role={role} />
@@ -329,7 +317,7 @@ function SidebarContent({
 
                 <div className="flex items-center gap-2 text-xs text-amber-400">
                   <Lock size={14} />
-                  {item.requiredPlan}
+                  {item.requiredPlan || "Plan superior"}
                 </div>
               </div>
             );
@@ -339,7 +327,7 @@ function SidebarContent({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm app-muted transition hover:bg-white/10 hover:text-emerald-400"
             >
               <Icon size={18} />
               {item.label}
@@ -348,37 +336,24 @@ function SidebarContent({
         })}
       </nav>
 
-      <form
-        action={logoutUser}
-        className={
-          mobile
-            ? "mt-4"
-            : "absolute bottom-5 left-5 right-5"
-        }
+      <Link
+        href="/api/auth/signout?callbackUrl=/login"
+        className="mt-6 rounded-xl px-3 py-3 text-sm app-muted transition hover:bg-white/10 hover:text-red-400"
       >
-        <button className="flex w-full items-center gap-3 rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
-          <LogOut size={18} />
-          Cerrar sesión
-        </button>
-      </form>
+        Cerrar sesión
+      </Link>
     </div>
   );
 }
 
-function RoleBadge({
-  role,
-}: {
-  role?: string;
-}) {
+function RoleBadge({ role }: { role?: string }) {
   return (
-    <p className="mt-2 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">
+    <p className="mt-2 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs app-muted">
       {role === "OWNER" && "Dueño"}
       {role === "CASHIER" && "Cajero"}
       {role === "STOCKER" && "Repositor"}
-      {role === "SUPER_ADMIN" &&
-        "Super Admin"}
-      {role === "DELIVERY" &&
-        "Motomandado"}
+      {role === "SUPER_ADMIN" && "Super Admin"}
+      {role === "DELIVERY" && "Motomandado"}
     </p>
   );
 }

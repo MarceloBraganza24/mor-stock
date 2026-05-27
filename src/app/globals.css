@@ -24,3 +24,112 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+:root {
+  --app-bg: #0a0a0a;
+  --app-surface: rgba(255, 255, 255, 0.03);
+  --app-surface-strong: #171717;
+  --app-border: rgba(255, 255, 255, 0.1);
+  --app-text: #ffffff;
+  --app-muted: rgba(255, 255, 255, 0.5);
+  --app-soft: rgba(255, 255, 255, 0.08);
+}
+
+.theme-light {
+  --app-bg: #f4f4f5;
+  --app-surface: #ffffff;
+  --app-surface-strong: #f9fafb;
+  --app-border: rgba(15, 23, 42, 0.12);
+  --app-text: #09090b;
+  --app-muted: rgba(24, 24, 27, 0.58);
+  --app-soft: rgba(15, 23, 42, 0.06);
+}
+
+.theme-dark {
+  --app-bg: #0a0a0a;
+  --app-surface: rgba(255, 255, 255, 0.03);
+  --app-surface-strong: #171717;
+  --app-border: rgba(255, 255, 255, 0.1);
+  --app-text: #ffffff;
+  --app-muted: rgba(255, 255, 255, 0.5);
+  --app-soft: rgba(255, 255, 255, 0.08);
+}
+
+.app-shell {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.app-surface {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+.app-surface-strong {
+  background: var(--app-surface-strong);
+  border-color: var(--app-border);
+}
+
+.app-border {
+  border-color: var(--app-border);
+}
+
+.app-muted {
+  color: var(--app-muted);
+}
+
+.app-soft {
+  background: var(--app-soft);
+}
+
+.app-input {
+  min-height: 3rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-strong);
+  color: var(--app-text);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.app-input:focus {
+  border-color: rgb(16 185 129);
+}
+
+.app-card {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-radius: 1rem;
+}
+
+.app-card-2xl {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-radius: 1.25rem;
+}
+
+/* Scrollbar minimalista */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
