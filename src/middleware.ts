@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+
+import { auth } from "@/auth";
 
 import {
   canAccessRole,
@@ -35,16 +36,12 @@ const protectedRoutes = [
   "/ordenes-compra",
 ];
 
-export default async function middleware(req: NextRequest) {
+export default auth((req) => {
   const pathname = req.nextUrl.pathname;
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-  });
+  const isLoggedIn = !!req.auth;
 
-  const isLoggedIn = !!token;
-  const role = token?.role as string | undefined;
+  const role = req.auth?.user?.role;
 
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
@@ -63,11 +60,13 @@ export default async function middleware(req: NextRequest) {
   const section = getSectionFromPath(pathname);
 
   if (section && !canAccessRole(role, section)) {
-    return NextResponse.redirect(new URL("/sin-permiso", req.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL("/sin-permiso", req.nextUrl.origin)
+    );
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
