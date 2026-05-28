@@ -1,4 +1,5 @@
 import { getFinanceReport } from "@/actions/finance.actions";
+import { FeatureLocked } from "@/components/FeatureLocked";
 
 type Props = {
   searchParams: Promise<{
@@ -10,10 +11,21 @@ type Props = {
 export default async function FinanzasPage({ searchParams }: Props) {
   const params = await searchParams;
 
-  const report = await getFinanceReport({
-    from: params.from,
-    to: params.to,
-  });
+  let report;
+
+  try {
+    report = await getFinanceReport({
+      from: params.from,
+      to: params.to,
+    });
+  } catch {
+    return (
+      <FeatureLocked
+        title="Finanzas avanzadas bloqueadas"
+        description="Tu plan actual no incluye el módulo financiero avanzado."
+      />
+    );
+  }
 
   return (
     <div>

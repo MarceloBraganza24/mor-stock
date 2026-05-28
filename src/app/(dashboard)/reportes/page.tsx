@@ -1,4 +1,5 @@
 import { getSalesReport } from "@/actions/report.actions";
+import { FeatureLocked } from "@/components/FeatureLocked";
 
 type Props = {
   searchParams: Promise<{
@@ -7,17 +8,30 @@ type Props = {
   }>;
 };
 
-export default async function ReportesPage({ searchParams }: Props) {
+export default async function ReportesPage({
+  searchParams,
+}: Props) {
   const params = await searchParams;
 
-  const report = await getSalesReport({
-    from: params.from,
-    to: params.to,
-  });
+  let report;
+
+  try {
+    report = await getSalesReport({
+      from: params.from,
+      to: params.to,
+    });
+  } catch {
+    return (
+      <FeatureLocked
+        title="Reportes avanzados bloqueados"
+        description="Tu plan actual no incluye reportes avanzados."
+      />
+    );
+  }
 
   const exportUrl = `/api/reportes/ventas?from=${params.from || ""}&to=${
     params.to || ""
-    }`;
+  }`;
 
   const paymentMethods = [
     "EFECTIVO",

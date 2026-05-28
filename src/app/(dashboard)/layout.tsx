@@ -195,7 +195,15 @@ export default async function DashboardLayout({
 
   const role = session.user.role;
 
-  const store = role === "SUPER_ADMIN" ? null : await getCurrentStore();
+  let store = null;
+
+  try {
+    store = role === "SUPER_ADMIN" ? null : await getCurrentStore();
+  } catch {
+    if (role !== "SUPER_ADMIN") {
+      redirect("/login");
+    }
+  }
 
   if (role !== "SUPER_ADMIN" && store && !store.isActive) {
     redirect("/comercio-suspendido");

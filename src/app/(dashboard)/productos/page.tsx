@@ -52,7 +52,13 @@ export default async function ProductosPage({ searchParams }: Props) {
   //const categories = await getProductCategories();
   const stockMovements = await getStockMovements();
 
-  const suppliers = await getSuppliers();
+  let suppliers: any[] = [];
+
+  try {
+    suppliers = await getSuppliers();
+  } catch {
+    suppliers = [];
+  }
 
   return (
     <div>
@@ -80,6 +86,20 @@ export default async function ProductosPage({ searchParams }: Props) {
       <BulkPriceUpdateForm categories={categories} brands={brands} />
       <BulkIncreaseSupplierForm
         suppliers={JSON.parse(JSON.stringify(suppliers))}
+      />
+
+      {params.query && (
+        <div className="mb-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+          <p className="text-sm text-emerald-300">
+            Código detectado desde el scanner:
+          </p>
+          <p className="mt-1 text-xl font-bold">{params.query}</p>
+        </div>
+      )}
+
+      <ProductCreateForm
+        defaultBarcode={params.query || ""}
+        redirectTo={params.from === "ventas" ? "/ventas" : ""}
       />
 
       <form
@@ -133,20 +153,6 @@ export default async function ProductosPage({ searchParams }: Props) {
           Filtrar
         </button>
       </form>
-
-      {params.query && (
-        <div className="mb-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-          <p className="text-sm text-emerald-300">
-            Código detectado desde el scanner:
-          </p>
-          <p className="mt-1 text-xl font-bold">{params.query}</p>
-        </div>
-      )}
-
-      <ProductCreateForm
-        defaultBarcode={params.query || ""}
-        redirectTo={params.from === "ventas" ? "/ventas" : ""}
-      />
 
       <div className="mb-4">
         <p className="text-sm app-muted">

@@ -1,12 +1,23 @@
 import {
   cancelDeliveryOrder,
-  createDeliveryOrder,
   getStoreDeliveryOrders,
 } from "@/actions/delivery.actions";
 import { DeliveryCreateForm } from "@/components/DeliveryCreateForm";
+import { FeatureLocked } from "@/components/FeatureLocked";
 
 export default async function EnviosPage() {
-  const orders = await getStoreDeliveryOrders();
+  let orders = [];
+
+  try {
+    orders = await getStoreDeliveryOrders();
+  } catch {
+    return (
+      <FeatureLocked
+        title="Envíos bloqueados"
+        description="Tu plan actual no incluye el módulo de delivery."
+      />
+    );
+  }
 
   return (
     <div>

@@ -3,13 +3,27 @@ import {
   getPromotionProducts,
   getPromotions,
 } from "@/actions/promotion.actions";
+
 import { PromotionCreateForm } from "@/components/PromotionCreateForm";
+import { FeatureLocked } from "@/components/FeatureLocked";
 
 export default async function PromocionesPage() {
-  const [promotions, products] = await Promise.all([
-    getPromotions(),
-    getPromotionProducts(),
-  ]);
+  let promotions = [];
+  let products = [];
+
+  try {
+    [promotions, products] = await Promise.all([
+      getPromotions(),
+      getPromotionProducts(),
+    ]);
+  } catch {
+    return (
+      <FeatureLocked
+        title="Promociones bloqueadas"
+        description="Tu plan actual no incluye promociones avanzadas."
+      />
+    );
+  }
 
   const categories: string[] = Array.from(
     new Set(

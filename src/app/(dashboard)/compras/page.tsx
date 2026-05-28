@@ -26,15 +26,15 @@ const cardClass =
 export default async function ComprasPage({ searchParams }: Props) {
   const params = await searchParams;
 
-  const products = await getProducts();
-
+  let products = [];
   let suppliers = [];
   let purchases = [];
 
   try {
+    products = await getProducts();
     suppliers = await getSuppliers();
     purchases = await getPurchases();
-  } catch (error) {
+  } catch {
     return (
       <FeatureLocked
         title="Compras bloqueado"
