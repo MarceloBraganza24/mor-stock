@@ -29,6 +29,10 @@ const protectedRoutes = [
   "/superadmin",
   "/comercio-suspendido",
   "/soporte",
+  "/promociones",
+  "/combos",
+  "/proveedores",
+  "/ordenes-compra",
 ];
 
 export default async function middleware(req: NextRequest) {
@@ -87,6 +91,10 @@ export const config = {
     "/papelera/:path*",
     "/superadmin/:path*",
     "/soporte/:path*",
+    "/promociones/:path*",
+    "/combos/:path*",
+    "/proveedores/:path*",
+    "/ordenes-compra/:path*",
     "/comercio-suspendido",
     "/login",
     "/register",

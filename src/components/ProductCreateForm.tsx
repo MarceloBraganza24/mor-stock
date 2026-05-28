@@ -69,6 +69,12 @@ export function ProductCreateForm({
       />
 
       <input
+        name="brand"
+        placeholder="Marca"
+        className={inputClass}
+      />
+
+      <input
         name="costPrice"
         type="number"
         min="0"

@@ -70,12 +70,37 @@ export default async function TicketPage({ params }: Props) {
               <div className="flex justify-between gap-3 text-sm">
                 <div>
                   <p className="font-medium">{item.name}</p>
+                  {item.isCombo && (
+                    <div className="mt-1 text-xs text-emerald-500">
+                      Combo
+                    </div>
+                  )}
+                  {item.isCombo &&
+                    item.comboItems?.map(
+                      (comboItem: any, index: number) => (
+                        <div
+                          key={index}
+                          className="ml-3 text-xs text-neutral-500"
+                        >
+                          • {comboItem.quantity}x{" "}
+                          {comboItem.name}
+                        </div>
+                      )
+                    )}
                   <p className="app-muted print:text-black/70">
                     {item.quantity} x ${item.unitPrice}
                   </p>
+                  {item.promotionName && (
+                    <p className="text-xs text-emerald-500">
+                      Promo aplicada: {item.promotionName} - Descuento ${item.discount}
+                    </p>
+                  )}
                 </div>
 
                 <p className="font-semibold">${item.subtotal}</p>
+                {sale.discountTotal > 0 && (
+                  <p>Descuentos: -${sale.discountTotal}</p>
+                )}
               </div>
             </div>
           ))}

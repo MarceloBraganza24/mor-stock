@@ -23,6 +23,15 @@ const supplierSchema = new Schema(
       default: "",
       trim: true,
     },
+    balance: {
+      type: Number,
+      default: 0,
+    },
+
+    creditLimit: {
+      type: Number,
+      default: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,

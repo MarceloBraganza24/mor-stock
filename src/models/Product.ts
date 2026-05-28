@@ -23,6 +23,11 @@ const productSchema = new Schema(
       default: "General",
       trim: true,
     },
+    brand: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     costPrice: {
       type: Number,
       required: true,
@@ -50,6 +55,13 @@ const productSchema = new Schema(
   },
   { timestamps: true }
 );
+
+productSchema.index({
+  name: "text",
+  barcode: "text",
+  category: "text",
+  brand: "text",
+});
 
 export const Product =
   models.Product || mongoose.model("Product", productSchema);

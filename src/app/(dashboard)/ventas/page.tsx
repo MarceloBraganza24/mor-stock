@@ -1,13 +1,15 @@
 import { getCustomers } from "@/actions/customer.actions";
 import { getProducts } from "@/actions/product.actions";
+import { getActivePromotions } from "@/actions/promotion.actions";
 import {
   getSalesHistory,
   getTodaySales,
   cancelSale,
+  getAvailableCombos
 } from "@/actions/sale.actions";
-
 import { SalesPoint } from "@/components/SalesPoint";
 import { TableContainer } from "@/components/ui/TableContainer";
+import NextLink from "next/link";
 
 type Props = {
   searchParams: Promise<{
@@ -33,6 +35,11 @@ export default async function VentasPage({
   const customers = await getCustomers();
 
   const todaySales = await getTodaySales();
+
+  const combos = await getAvailableCombos();
+
+  const promotions =
+    await getActivePromotions();
 
   const salesHistory = await getSalesHistory({
     paymentMethod:
@@ -77,6 +84,13 @@ export default async function VentasPage({
         </p>
       </div>
 
+      <NextLink
+        href="/ventas/manual"
+        className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+      >
+        Venta manual
+      </NextLink>
+
       <div className="mb-6 grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className={metricCardClass}>
           <p className="text-sm app-muted">
@@ -112,6 +126,8 @@ export default async function VentasPage({
       <SalesPoint
         products={products}
         customers={customers}
+        combos={combos}
+        promotions={promotions}
       />
 
       <div className="mt-10">

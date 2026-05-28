@@ -1,6 +1,5 @@
 import {
   deleteProduct,
-  getProductCategories,
   getProducts,
   updateProduct,
   adjustProductStock,
@@ -8,11 +7,17 @@ import {
 } from "@/actions/product.actions";
 import { ProductCreateForm } from "@/components/ProductCreateForm";
 import NextLink from "next/link";
+import { BulkPriceUpdateForm } from "@/components/BulkPriceUpdateForm";
+import { BulkIncreaseSupplierForm } from "@/components/BulkIncreaseSupplierForm";
+import {
+  getSuppliers,
+} from "@/actions/purchase.actions";
 
 type Props = {
   searchParams: Promise<{
     query?: string;
     category?: string;
+    brand?: string;
     lowStock?: string;
     from?: string;
   }>;
@@ -23,12 +28,31 @@ export default async function ProductosPage({ searchParams }: Props) {
 
   const products = await getProducts({
     query: params.query,
+    brand: params.brand,
     category: params.category,
     lowStock: params.lowStock,
   });
 
-  const categories = await getProductCategories();
+  const categories: string[] = Array.from(
+    new Set(
+      products
+        .map((product: any) => String(product.category || ""))
+        .filter(Boolean)
+    )
+  );
+
+  const brands: string[] = Array.from(
+    new Set(
+      products
+        .map((product: any) => String(product.brand || ""))
+        .filter(Boolean)
+    )
+  );
+
+  //const categories = await getProductCategories();
   const stockMovements = await getStockMovements();
+
+  const suppliers = await getSuppliers();
 
   return (
     <div>
@@ -38,14 +62,25 @@ export default async function ProductosPage({ searchParams }: Props) {
         <p className="mt-2 app-muted">
           Buscá, filtrá, cargá y editá productos del comercio.
         </p>
-        <NextLink
-          href="/productos/importar"
-          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-        >
-          Importar Excel/CSV
-        </NextLink>
       </div>
+      
+      <NextLink
+        href="/productos/importar"
+        className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+      >
+        Importar Excel/CSV
+      </NextLink>
+      <NextLink
+        href="/productos/etiquetas"
+        className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+      >
+        Imprimir precios
+      </NextLink>
 
+      <BulkPriceUpdateForm categories={categories} brands={brands} />
+      <BulkIncreaseSupplierForm
+        suppliers={JSON.parse(JSON.stringify(suppliers))}
+      />
 
       <form
         action="/productos"
@@ -64,9 +99,23 @@ export default async function ProductosPage({ searchParams }: Props) {
           className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
         >
           <option value="TODAS">Todas las categorías</option>
-          {categories.map((category: string) => (
+          {categories.map((category) => (
             <option key={category} value={category}>
               {category}
+            </option>
+          ))}
+        </select>
+
+        <select
+          name="brand"
+          defaultValue={params.brand || "TODAS"}
+          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
+        >
+          <option value="TODAS">Todas las marcas</option>
+
+          {brands.map((brand) => (
+            <option key={brand} value={brand}>
+              {brand}
             </option>
           ))}
         </select>

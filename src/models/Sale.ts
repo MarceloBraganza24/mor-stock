@@ -32,6 +32,48 @@ const saleItemSchema = new Schema(
     costPrice: { type: Number, default: 0 },
     subtotal: { type: Number, required: true },
     batches: [saleItemBatchSchema],
+    isCombo: {
+      type: Boolean,
+      default: false,
+    },
+
+    combo: {
+      type: Schema.Types.ObjectId,
+      ref: "Combo",
+      default: null,
+    },
+
+    comboItems: [
+      {
+        product: {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+          default: null,
+        },
+
+        name: String,
+
+        quantity: Number,
+      },
+    ],
+    isManual: {
+      type: Boolean,
+      default: false,
+    },
+    originalSubtotal: {
+      type: Number,
+      default: 0,
+    },
+
+    discount: {
+      type: Number,
+      default: 0,
+    },
+
+    promotionName: {
+      type: String,
+      default: "",
+    },
   },
   { _id: false }
 );
@@ -48,6 +90,10 @@ const saleSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    discountTotal: {
+      type: Number,
+      default: 0,
     },
     customer: {
       type: Schema.Types.ObjectId,

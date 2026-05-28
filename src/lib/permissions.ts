@@ -29,6 +29,10 @@ export type Section =
   | "estado"
   | "ayuda"
   | "actividad"
+  | "promociones"
+  | "combos"
+  | "proveedores"
+  | "ordenesCompra"
 
 export const sectionPermissions: Record<
   Section,
@@ -44,17 +48,27 @@ export const sectionPermissions: Record<
   caja: { roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
   empleados: { roles: ["OWNER", "SUPER_ADMIN"] },
   devoluciones: { roles: ["OWNER", "SUPER_ADMIN", "CASHIER"] },
-
+  promociones: {
+    roles: ["OWNER", "CASHIER"],
+  },
   reportes: {
     roles: ["OWNER", "SUPER_ADMIN"],
     planFeature: "reports",
   },
-
+  combos: {
+    roles: ["OWNER", "CASHIER"],
+  },
+  proveedores: {
+    roles: ["OWNER", "STOCKER"],
+  },
   finanzas: {
     roles: ["OWNER", "SUPER_ADMIN"],
     planFeature: "advancedReports",
   },
-
+  ordenesCompra: {
+    roles: ["OWNER", "STOCKER"],
+    planFeature: "purchases",
+  },
   envios: {
     roles: ["OWNER", "SUPER_ADMIN", "CASHIER"],
     planFeature: "delivery",
@@ -163,6 +177,10 @@ export function getSectionFromPath(pathname: string): Section | null {
   if (pathname.startsWith("/estado")) return "estado";
   if (pathname.startsWith("/ayuda")) return "ayuda";
   if (pathname.startsWith("/actividad")) return "actividad";
-
+  if (pathname.startsWith("/promociones")) return "promociones";
+  if (pathname.startsWith("/combos")) return "combos";
+  if (pathname.startsWith("/proveedores")) return "proveedores";
+  if (pathname.startsWith("/ordenes-compra")) return "ordenesCompra";
+  
   return null;
 }

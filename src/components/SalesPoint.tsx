@@ -4,13 +4,22 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSale } from "@/actions/sale.actions";
 import { createCustomer } from "@/actions/customer.actions";
+import { getAvailableCombos } from "@/actions/sale.actions";
+import { calculatePromotionPreview } from "@/lib/client-promotion-engine";
 
 type Product = {
   _id: string;
   name: string;
   barcode?: string;
+  category?: string;
+  brand?: string;
   salePrice: number;
   stock: number;
+  quantity?: number;
+  type?: "PRODUCT" | "COMBO";
+  comboId?: string;
+  subtotal?: number;
+  unitPrice?: number;
 };
 
 type Customer = {
@@ -44,9 +53,13 @@ const cardClass =
 export function SalesPoint({
   products,
   customers,
+  combos,
+  promotions,
 }: {
   products: Product[];
   customers: Customer[];
+  combos: any[];
+  promotions: any[];
 }) {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -65,6 +78,7 @@ export function SalesPoint({
   const [unknownBarcode, setUnknownBarcode] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
 
   useEffect(() => {
     if (scannerMode) {
@@ -87,10 +101,56 @@ export function SalesPoint({
       .slice(0, 12);
   }, [products, query]);
 
-  const total = cart.reduce(
-    (acc, item) => acc + item.quantity * item.unitPrice,
-    0
+  
+  const itemsWithPromotions = filteredProducts.map(
+    (item) => {
+      if (item.type === "COMBO") {
+        return {
+          ...item,
+          finalSubtotal:
+            item.subtotal,
+          originalSubtotal:
+            item.subtotal,
+          discount: 0,
+        };
+      }
+
+      return calculatePromotionPreview({
+        item,
+        promotions,
+      });
+    }
   );
+
+  const subtotal =
+    itemsWithPromotions.reduce(
+      (acc, item) =>
+        acc +
+        Number(
+          item.originalSubtotal || 0
+        ),
+      0
+    );
+
+  const discountTotal =
+    itemsWithPromotions.reduce(
+      (acc, item) =>
+        acc +
+        Number(item.discount || 0),
+      0
+    );
+
+  const total =
+    itemsWithPromotions.reduce(
+      (acc, item) =>
+        acc +
+        Number(
+          item.finalSubtotal ||
+            item.subtotal ||
+            0
+        ),
+      0
+    );
 
   function playSuccessSound() {
     const audio = new Audio(
@@ -352,6 +412,50 @@ export function SalesPoint({
             </a>
           </div>
         )}
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <p className="mb-3 text-sm font-semibold text-emerald-400">
+            Combos
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            {combos.map((combo) => (
+              <button
+                key={combo._id}
+                type="button"
+                onClick={() =>
+                  addToCart({
+                    _id: combo._id,
+                    type: "COMBO",
+                    comboId: combo._id,
+                    name: combo.name,
+                    quantity: 1,
+                    salePrice: Number(combo.comboPrice || 0),
+                    unitPrice: Number(combo.comboPrice || 0),
+                    subtotal: Number(combo.comboPrice || 0),
+                    stock: 999999,
+                  })
+                }
+                className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:border-emerald-500/30 hover:bg-emerald-500/10"
+              >
+                <p className="font-semibold">
+                  {combo.name}
+                </p>
+
+                <p className="mt-1 text-sm app-muted">
+                  {combo.items.length} productos
+                </p>
+
+                <p className="mt-3 text-lg font-black text-emerald-400">
+                  $
+                  {Number(combo.comboPrice).toLocaleString(
+                    "es-AR"
+                  )}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 2xl:grid-cols-2">
           {filteredProducts.map((product) => (

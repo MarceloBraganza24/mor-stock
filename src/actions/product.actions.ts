@@ -11,11 +11,13 @@ import { redirect } from "next/navigation";
 import { assertCanCreateProduct } from "@/lib/plan-utils";
 import { getActionError } from "@/lib/action-response";
 import { createAuditLog } from "@/lib/audit";
+import { Supplier } from "@/models/Supplier";
 
 export async function getProducts(filters?: {
   query?: string;
   category?: string;
   lowStock?: string;
+  brand?: string;
 }) {
   const session = await requireRoles(["OWNER", "STOCKER", "CASHIER"]);
 
@@ -31,6 +33,10 @@ export async function getProducts(filters?: {
       { name: { $regex: filters.query, $options: "i" } },
       { barcode: { $regex: filters.query, $options: "i" } },
     ];
+  }
+
+  if (filters?.brand && filters.brand !== "TODAS") {
+    mongoQuery.brand = filters.brand;
   }
 
   if (filters?.category && filters.category !== "TODAS") {
@@ -59,6 +65,95 @@ export async function getProductCategories() {
   return categories.filter(Boolean).sort();
 }
 
+export async function bulkIncreaseBySupplier(formData: FormData) {
+  const session = await requireRoles(["OWNER"]);
+
+  await connectDB();
+
+  const supplierId = String(formData.get("supplierId") || "");
+  const percentage = Number(formData.get("percentage") || 0);
+  const roundType = String(formData.get("roundType") || "NONE");
+
+  if (!supplierId) {
+    return {
+      success: false,
+      error: "Seleccioná un proveedor.",
+    };
+  }
+
+  if (!percentage || percentage <= 0) {
+    return {
+      success: false,
+      error: "El porcentaje debe ser mayor a 0.",
+    };
+  }
+
+  const supplier = await Supplier.findOne({
+    _id: supplierId,
+    store: session.user.store!,
+  });
+
+  if (!supplier) {
+    return {
+      success: false,
+      error: "Proveedor no encontrado.",
+    };
+  }
+
+  const products = await Product.find({
+    store: session.user.store!,
+    supplier: supplier._id,
+    isActive: true,
+    deletedAt: null,
+  });
+
+  let updated = 0;
+
+  for (const product of products) {
+    let newPrice =
+      Number(product.salePrice || 0) *
+      (1 + percentage / 100);
+
+    if (roundType === "INTEGER") {
+      newPrice = Math.round(newPrice);
+    }
+
+    if (roundType === "50") {
+      newPrice = Math.ceil(newPrice / 50) * 50;
+    }
+
+    if (roundType === "100") {
+      newPrice = Math.ceil(newPrice / 100) * 100;
+    }
+
+    product.salePrice = newPrice;
+
+    await product.save();
+
+    updated++;
+  }
+
+  await createAuditLog({
+    store: session.user.store!,
+    user: session.user.id,
+    action: "BULK_INCREASE_SUPPLIER",
+    entity: "Product",
+    description: `Aumento masivo por proveedor ${supplier.name}`,
+    metadata: {
+      supplier: supplier.name,
+      percentage,
+      updated,
+    },
+  });
+
+  revalidatePath("/productos");
+
+  return {
+    success: true,
+    message: `${updated} productos actualizados.`,
+  };
+}
+
 export async function createProduct(formData: FormData) {
   try {
     const session = await requireRoles(["OWNER", "STOCKER"]);
@@ -69,6 +164,7 @@ export async function createProduct(formData: FormData) {
       name: formData.get("name"),
       barcode: formData.get("barcode"),
       category: formData.get("category"),
+      brand: formData.get("brand"),
       costPrice: formData.get("costPrice"),
       salePrice: formData.get("salePrice"),
       stock: formData.get("stock"),
@@ -121,6 +217,7 @@ export async function updateProduct(productId: string, formData: FormData) {
     name: formData.get("name"),
     barcode: formData.get("barcode"),
     category: formData.get("category"),
+    brand: formData.get("brand"),
     costPrice: formData.get("costPrice"),
     salePrice: formData.get("salePrice"),
     stock: formData.get("stock"),

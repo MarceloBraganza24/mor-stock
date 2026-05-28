@@ -14,6 +14,12 @@ import { CreditMovement } from "@/models/CreditMovement";
 import { ProductBatch } from "@/models/ProductBatch";
 import { getActionError } from "@/lib/action-response";
 import { createAuditLog } from "@/lib/audit";
+import { Promotion } from "@/models/Promotion";
+import {
+  applyPromotionToItem,
+  isPromotionActive,
+} from "@/lib/promotion-engine";
+import { Combo } from "@/models/Combo";
 
 const createSaleSchema = z.object({
   paymentMethod: z.enum([
@@ -28,8 +34,17 @@ const createSaleSchema = z.object({
   items: z
     .array(
       z.object({
-        productId: z.string().min(1),
-        quantity: z.coerce.number().int().positive(),
+        productId: z.string().optional(),
+        comboId: z.string().optional(),
+
+        type: z
+          .enum(["PRODUCT", "COMBO"])
+          .optional(),
+
+        quantity: z.coerce
+          .number()
+          .int()
+          .positive(),
       })
     )
     .min(1, "La venta debe tener al menos un producto"),
@@ -40,6 +55,31 @@ const salesHistorySchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
 });
+
+type ManualSaleItemInput = {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+};
+
+export async function getAvailableCombos() {
+  const session = await requireRoles([
+    "OWNER",
+    "CASHIER",
+  ]);
+
+  await connectDB();
+
+  const combos = await Combo.find({
+    store: session.user.store!,
+    isActive: true,
+    deletedAt: null,
+  })
+    .populate("items.product", "name stock")
+    .sort({ name: 1 });
+
+  return JSON.parse(JSON.stringify(combos));
+}
 
 export async function createSale(input: unknown) {
   try {
@@ -67,11 +107,79 @@ export async function createSale(input: unknown) {
       }
     }
 
-    const saleItems = [];
+    const saleItems: any[] = [];
     let total = 0;
     let profit = 0;
 
     for (const item of parsed.items) {
+      if (item.type === "COMBO") {
+        const combo = await Combo.findOne({
+          _id: item.comboId,
+          store: session.user.store!,
+          isActive: true,
+          deletedAt: null,
+        }).populate("items.product");
+
+        if (!combo) {
+          return {
+            success: false,
+            error: "Combo no encontrado.",
+          };
+        }
+
+        const quantity = Number(item.quantity || 1);
+
+        for (const comboItem of combo.items as any[]) {
+          const product: any = comboItem.product;
+
+          if (!product) continue;
+
+          const neededStock =
+            Number(comboItem.quantity || 0) * quantity;
+
+          if (
+            Number(product.stock || 0) < neededStock
+          ) {
+            return {
+              success: false,
+              error: `Stock insuficiente para ${product.name} del combo ${combo.name}.`,
+            };
+          }
+        }
+
+        for (const comboItem of combo.items as any[]) {
+          const product: any = comboItem.product;
+
+          if (!product) continue;
+
+          const neededStock =
+            Number(comboItem.quantity || 0) * quantity;
+
+          product.stock =
+            Number(product.stock || 0) - neededStock;
+
+          await product.save();
+        }
+
+        saleItems.push({
+          isCombo: true,
+          combo: combo._id,
+          comboItems: combo.items.map((comboItem: any) => ({
+            product: comboItem.product?._id,
+            name: comboItem.product?.name,
+            quantity:
+              Number(comboItem.quantity || 0) *
+              quantity,
+          })),
+          name: combo.name,
+          quantity,
+          unitPrice: combo.comboPrice,
+          subtotal:
+            Number(combo.comboPrice || 0) * quantity,
+        });
+
+        continue;
+      }
       const product = await Product.findOne({
         _id: item.productId,
         store: session.user.store!,
@@ -428,4 +536,78 @@ export async function cancelSale(saleId: string) {
   revalidatePath("/dashboard");
   revalidatePath("/caja");
   revalidatePath("/clientes");
+}
+
+export async function createManualSale(
+  items: ManualSaleItemInput[]
+) {
+  const session = await requireRoles([
+    "OWNER",
+    "ADMIN",
+    "CASHIER",
+  ]);
+
+  await connectDB();
+
+  if (!items.length) {
+    return {
+      success: false,
+      error: "No hay items.",
+    };
+  }
+
+  const sanitizedItems = items.map((item) => {
+    const quantity = Number(item.quantity || 1);
+    const unitPrice = Number(item.unitPrice || 0);
+
+    return {
+      product: null,
+      name: item.name.trim(),
+      quantity,
+      unitPrice,
+      subtotal: quantity * unitPrice,
+      isManual: true,
+    };
+  });
+
+  const total = sanitizedItems.reduce(
+    (acc, item) => acc + item.subtotal,
+    0
+  );
+
+  const sale = await Sale.create({
+    store: session.user.store!,
+    user: session.user.id,
+    customer: null,
+    items: sanitizedItems,
+    subtotal: total,
+    total,
+    paymentMethod: "CASH",
+    status: "COMPLETED",
+  });
+  
+  await CashMovement.create({
+    store: session.user.store!,
+    type: "INCOME",
+    amount: total,
+    description: `Venta manual #${sale._id}`,
+  });
+
+  await createAuditLog({
+    store: session.user.store!,
+    user: session.user.id,
+    action: "CREATE_MANUAL_SALE",
+    entity: "Sale",
+    entityId: sale._id.toString(),
+    description: `Venta manual por $${total}`,
+  });
+
+  revalidatePath("/ventas");
+  revalidatePath("/dashboard");
+  revalidatePath("/caja");
+
+  return {
+    success: true,
+    saleId: sale._id.toString(),
+  };
 }

@@ -10,6 +10,13 @@ import {
   ProductImportRow,
 } from "@/lib/product-import";
 import { createAuditLog } from "@/lib/audit";
+import { Supplier } from "@/models/Supplier";
+
+function getValidRows(rows: ProductImportRow[], errors: any[]) {
+  const invalidRowNumbers = new Set(errors.map((error) => error.rowNumber));
+
+  return rows.filter((row) => !invalidRowNumbers.has(row.rowNumber));
+}
 
 export async function previewProductImport(formData: FormData) {
   const session = await requireRoles(["OWNER", "STOCKER"]);
@@ -23,16 +30,10 @@ export async function previewProductImport(formData: FormData) {
     };
   }
 
-  const validTypes = [
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-excel",
-    "text/csv",
-  ];
-
   const isValidExtension =
     file.name.endsWith(".xlsx") || file.name.endsWith(".csv");
 
-  if (!validTypes.includes(file.type) && !isValidExtension) {
+  if (!isValidExtension) {
     return {
       success: false,
       error: "El archivo debe ser .xlsx o .csv.",
@@ -43,9 +44,7 @@ export async function previewProductImport(formData: FormData) {
 
   const parsed = await parseProductImportFile(file);
 
-  const barcodes = parsed.rows
-    .map((row) => row.barcode)
-    .filter(Boolean);
+  const barcodes = parsed.rows.map((row) => row.barcode).filter(Boolean);
 
   const existingProducts = await Product.find({
     store: session.user.store!,
@@ -66,12 +65,15 @@ export async function previewProductImport(formData: FormData) {
     }));
 
   const errors = [...parsed.errors, ...dbErrors];
+  const validRows = getValidRows(parsed.rows, errors);
 
   return {
     success: true,
     rows: parsed.rows,
+    validRows,
     errors,
-    validCount: parsed.rows.length - errors.length,
+    validCount: validRows.length,
+    skippedCount: errors.length,
     totalCount: parsed.rows.length,
   };
 }
@@ -84,17 +86,52 @@ export async function importProducts(rows: ProductImportRow[]) {
   if (!rows.length) {
     return {
       success: false,
-      error: "No hay productos para importar.",
+      error: "No hay productos válidos para importar.",
     };
   }
+
+  const supplierNames = Array.from(
+    new Set(rows.map((row) => row.supplierName).filter(Boolean))
+  );
+
+  const supplierDocs = await Promise.all(
+    supplierNames.map(async (name) => {
+      const supplier = await Supplier.findOneAndUpdate(
+        {
+          store: session.user.store!,
+          name,
+        },
+        {
+          $setOnInsert: {
+            store: session.user.store!,
+            name,
+            isActive: true,
+            deletedAt: null,
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+        }
+      );
+
+      return supplier;
+    })
+  );
+
+  const supplierMap = new Map(
+    supplierDocs.map((supplier: any) => [supplier.name, supplier._id])
+  );
 
   const products = rows.map((row) => ({
     store: session.user.store!,
     name: row.name,
-    barcode: row.barcode || undefined,
+    barcode: row.barcode || "",
     category: row.category || "",
+    brand: row.brand || "",
+    supplier: row.supplierName ? supplierMap.get(row.supplierName) : null,
     costPrice: row.costPrice || 0,
-    salePrice: row.salePrice,
+    salePrice: row.salePrice || 0,
     stock: row.stock || 0,
     minStock: row.minStock || 0,
     isActive: true,
