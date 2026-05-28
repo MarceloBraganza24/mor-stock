@@ -22,7 +22,7 @@ export async function getProducts(filters?: {
   await connectDB();
 
   const mongoQuery: any = {
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   };
 
@@ -52,7 +52,7 @@ export async function getProductCategories() {
   await connectDB();
 
   const categories = await Product.distinct("category", {
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   });
 
@@ -80,13 +80,13 @@ export async function createProduct(formData: FormData) {
     await assertCanCreateProduct(session.user.store);
 
     const product = await Product.create({
-      store: session.user.store,
+      store: session.user.store!,
       ...parsed,
       category: parsed.category || "General",
     });
 
     await createAuditLog({
-      store: session.user.store,
+      store: session.user.store!,
       user: session.user.id,
       action: "CREATE_PRODUCT",
       entity: "Product",
@@ -132,7 +132,7 @@ export async function updateProduct(productId: string, formData: FormData) {
   await Product.findOneAndUpdate(
     {
       _id: productId,
-      store: session.user.store,
+      store: session.user.store!,
       isActive: true,
     },
     {
@@ -142,7 +142,7 @@ export async function updateProduct(productId: string, formData: FormData) {
   );
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "UPDATE_PRODUCT",
     entity: "Product",
@@ -163,7 +163,7 @@ export async function deleteProduct(productId: string) {
   await Product.findOneAndUpdate(
     {
       _id: productId,
-      store: session.user.store,
+      store: session.user.store!,
     },
     {
       isActive: false,
@@ -171,7 +171,7 @@ export async function deleteProduct(productId: string) {
   );
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "DELETE_PRODUCT",
     entity: "Product",
@@ -198,7 +198,7 @@ export async function adjustProductStock(formData: FormData) {
 
   const product = await Product.findOne({
     _id: parsed.productId,
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   });
 
@@ -225,7 +225,7 @@ export async function adjustProductStock(formData: FormData) {
   await product.save();
 
   await StockMovement.create({
-    store: session.user.store,
+    store: session.user.store!,
     product: product._id,
     user: session.user.id,
     type: parsed.type,
@@ -245,7 +245,7 @@ export async function getStockMovements() {
   await connectDB();
 
   const movements = await StockMovement.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("product", "name barcode category")
     .populate("user", "name role")

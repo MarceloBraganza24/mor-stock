@@ -29,12 +29,12 @@ export async function getPaymentsReport(filters?: {
   }
 
   const saleQuery: any = {
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   };
 
   const creditQuery: any = {
-    store: session.user.store,
+    store: session.user.store!,
     type: "PAGO",
   };
 
@@ -55,7 +55,7 @@ export async function getPaymentsReport(filters?: {
       .sort({ createdAt: -1 }),
 
     Customer.find({
-      store: session.user.store,
+      store: session.user.store!,
       isActive: true,
       balance: { $gt: 0 },
     }).sort({ balance: -1 }),

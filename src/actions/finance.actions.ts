@@ -32,17 +32,17 @@ export async function getFinanceReport(filters?: {
   }
 
   const saleQuery: any = {
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   };
 
   const purchaseQuery: any = {
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   };
 
   const cashQuery: any = {
-    store: session.user.store,
+    store: session.user.store!,
   };
 
   if (Object.keys(dateQuery).length > 0) {

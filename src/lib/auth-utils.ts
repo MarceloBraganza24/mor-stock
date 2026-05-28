@@ -9,7 +9,7 @@ export async function requireRoles(roles: string[]) {
   }
 
   const role = session.user.role;
-  const store = session.user.store;
+  const store = session.user.store!;
 
   if (!role) {
     redirect("/login");

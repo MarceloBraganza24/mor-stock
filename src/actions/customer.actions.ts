@@ -20,7 +20,7 @@ export async function getCustomers() {
   await connectDB();
 
   const customers = await Customer.find({
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   }).sort({ balance: -1 });
 
@@ -33,7 +33,7 @@ export async function getCustomerMovements(customerId: string) {
   await connectDB();
 
   const movements = await CreditMovement.find({
-    store: session.user.store,
+    store: session.user.store!,
     customer: customerId,
   })
     .populate("user", "name role")
@@ -48,7 +48,7 @@ export async function getCreditMovements() {
   await connectDB();
 
   const movements = await CreditMovement.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("customer", "name")
     .populate("user", "name role")
@@ -70,7 +70,7 @@ export async function createCustomer(formData: FormData) {
   await connectDB();
 
   await Customer.create({
-    store: session.user.store,
+    store: session.user.store!,
     ...parsed,
   });
 
@@ -91,7 +91,7 @@ export async function addDebt(formData: FormData) {
 
   const customer = await Customer.findOne({
     _id: parsed.customerId,
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   });
 
@@ -103,7 +103,7 @@ export async function addDebt(formData: FormData) {
   await customer.save();
 
   await CreditMovement.create({
-    store: session.user.store,
+    store: session.user.store!,
     customer: customer._id,
     user: session.user.id,
     type: "DEUDA",
@@ -113,7 +113,7 @@ export async function addDebt(formData: FormData) {
   });
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "ADD_CUSTOMER_DEBT",
     entity: "Customer",
@@ -142,7 +142,7 @@ export async function registerPayment(formData: FormData) {
 
   const customer = await Customer.findOne({
     _id: parsed.customerId,
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   });
 
@@ -156,7 +156,7 @@ export async function registerPayment(formData: FormData) {
   await customer.save();
 
   const creditMovement = await CreditMovement.create({
-    store: session.user.store,
+    store: session.user.store!,
     customer: customer._id,
     user: session.user.id,
     type: "PAGO",
@@ -166,7 +166,7 @@ export async function registerPayment(formData: FormData) {
   });
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "REGISTER_CUSTOMER_PAYMENT",
     entity: "CreditMovement",
@@ -180,13 +180,13 @@ export async function registerPayment(formData: FormData) {
 
   if (parsed.paymentMethod === "EFECTIVO") {
     const openCashRegister = await CashRegister.findOne({
-      store: session.user.store,
+      store: session.user.store!,
       status: "ABIERTA",
     });
 
     if (openCashRegister) {
       await CashMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         cashRegister: openCashRegister._id,
         user: session.user.id,
         type: "INGRESO",
@@ -215,7 +215,7 @@ export async function deleteCustomer(customerId: string) {
   await Customer.findOneAndUpdate(
     {
       _id: customerId,
-      store: session.user.store,
+      store: session.user.store!,
     },
     {
       isActive: false,

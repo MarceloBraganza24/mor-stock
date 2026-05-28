@@ -17,7 +17,7 @@ export async function getEmployees() {
   await connectDB();
 
   const employees = await User.find({
-    store: session.user.store,
+    store: session.user.store!,
     role: { $in: ["CASHIER", "STOCKER", "DELIVERY"] },
     isActive: true,
   }).sort({ createdAt: -1 });
@@ -58,12 +58,12 @@ export async function createEmployee(formData: FormData) {
       email: parsed.email.toLowerCase(),
       password: hashedPassword,
       role: parsed.role,
-      store: session.user.store,
+      store: session.user.store!,
       isActive: true,
     });
 
     await createAuditLog({
-      store: session.user.store,
+      store: session.user.store!,
       user: session.user.id,
       action: "CREATE_EMPLOYEE",
       entity: "User",
@@ -101,7 +101,7 @@ export async function deleteEmployee(employeeId: string) {
   await User.findOneAndUpdate(
     {
       _id: employeeId,
-      store: session.user.store,
+      store: session.user.store!,
       role: { $in: ["CASHIER", "STOCKER", "DELIVERY"] },
     },
     {
@@ -110,7 +110,7 @@ export async function deleteEmployee(employeeId: string) {
   );
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "DELETE_EMPLOYEE",
     entity: "User",

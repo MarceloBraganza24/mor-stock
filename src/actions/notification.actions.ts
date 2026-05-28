@@ -10,7 +10,7 @@ export async function getInternalNotifications() {
   await connectDB();
 
   const notifications = await InternalNotification.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .sort({ createdAt: -1 })
     .limit(30);
@@ -35,7 +35,7 @@ export async function markNotificationAsRead(id: string) {
   await InternalNotification.findOneAndUpdate(
     {
       _id: id,
-      store: session.user.store,
+      store: session.user.store!,
     },
     {
       isRead: true,

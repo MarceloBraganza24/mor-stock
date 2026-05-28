@@ -10,7 +10,7 @@ export async function getAuditLogs() {
   await connectDB();
 
   const logs = await AuditLog.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("user", "name role email")
     .sort({ createdAt: -1 })

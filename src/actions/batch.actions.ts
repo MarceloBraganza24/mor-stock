@@ -22,7 +22,7 @@ export async function createProductBatch(formData: FormData) {
 
   const product = await Product.findOne({
     _id: parsed.productId,
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   });
 
@@ -34,7 +34,7 @@ export async function createProductBatch(formData: FormData) {
   const newStock = previousStock + parsed.quantity;
 
   await ProductBatch.create({
-    store: session.user.store,
+    store: session.user.store!,
     product: product._id,
     batchCode: parsed.batchCode || "",
     quantity: parsed.quantity,
@@ -45,7 +45,7 @@ export async function createProductBatch(formData: FormData) {
   await product.save();
 
   await StockMovement.create({
-    store: session.user.store,
+    store: session.user.store!,
     product: product._id,
     user: session.user.id,
     type: "SUMA",
@@ -73,7 +73,7 @@ export async function getExpirationAlerts() {
   warningDate.setHours(23, 59, 59, 999);
 
   const batches = await ProductBatch.find({
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
     quantity: { $gt: 0 },
     expirationDate: { $lte: warningDate },
@@ -90,7 +90,7 @@ export async function getProductBatches() {
   await connectDB();
 
   const batches = await ProductBatch.find({
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   })
     .populate("product", "name barcode category")

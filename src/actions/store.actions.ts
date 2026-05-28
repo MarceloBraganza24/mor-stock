@@ -65,7 +65,7 @@ export async function getOnboardingStatus() {
   const store = await Store.findById(session.user.store);
 
   const productsCount = await Product.countDocuments({
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   });
 
@@ -101,11 +101,11 @@ export async function getPlanUsage() {
 
   const [productsCount, employeesCount] = await Promise.all([
     Product.countDocuments({
-      store: session.user.store,
+      store: session.user.store!,
       isActive: true,
     }),
     User.countDocuments({
-      store: session.user.store,
+      store: session.user.store!,
       role: { $in: ["CASHIER", "STOCKER", "DELIVERY"] },
       isActive: true,
     }),

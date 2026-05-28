@@ -16,7 +16,7 @@ export async function getSalesReport(filters?: {
   await assertFeatureEnabled(session.user.store, "reports");
   
   const query: any = {
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   };
 

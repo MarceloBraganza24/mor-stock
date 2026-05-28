@@ -19,7 +19,7 @@ export async function GET() {
 
   await connectDB();
 
-  const store = session.user.store;
+  const store = session.user.store!;
 
   const backup = {
     generatedAt: new Date(),

@@ -16,7 +16,7 @@ export async function getOpenCashRegister() {
   await connectDB();
 
   const cashRegister = await CashRegister.findOne({
-    store: session.user.store,
+    store: session.user.store!,
     status: "ABIERTA",
   }).sort({ createdAt: -1 });
 
@@ -29,14 +29,14 @@ export async function getOpenCashMovements() {
   await connectDB();
 
   const cashRegister = await CashRegister.findOne({
-    store: session.user.store,
+    store: session.user.store!,
     status: "ABIERTA",
   });
 
   if (!cashRegister) return [];
 
   const movements = await CashMovement.find({
-    store: session.user.store,
+    store: session.user.store!,
     cashRegister: cashRegister._id,
   })
     .populate("user", "name role")
@@ -51,7 +51,7 @@ export async function getCashHistory() {
   await connectDB();
 
   const history = await CashRegister.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("openedBy", "name role")
     .sort({ createdAt: -1 })
@@ -72,7 +72,7 @@ export async function openCashRegister(formData: FormData) {
   await connectDB();
 
   const existingOpenCash = await CashRegister.findOne({
-    store: session.user.store,
+    store: session.user.store!,
     status: "ABIERTA",
   });
 
@@ -81,7 +81,7 @@ export async function openCashRegister(formData: FormData) {
   }
 
   const cashRegister = await CashRegister.create({
-    store: session.user.store,
+    store: session.user.store!,
     openedBy: session.user.id,
     openingAmount,
     expectedAmount: openingAmount,
@@ -89,7 +89,7 @@ export async function openCashRegister(formData: FormData) {
   });
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "OPEN_CASH_REGISTER",
     entity: "CashRegister",
@@ -122,7 +122,7 @@ export async function addCashMovement(formData: FormData) {
   await connectDB();
 
   const cashRegister = await CashRegister.findOne({
-    store: session.user.store,
+    store: session.user.store!,
     status: "ABIERTA",
   });
 
@@ -131,7 +131,7 @@ export async function addCashMovement(formData: FormData) {
   }
 
   await CashMovement.create({
-    store: session.user.store,
+    store: session.user.store!,
     cashRegister: cashRegister._id,
     user: session.user.id,
     type: parsed.type,
@@ -141,7 +141,7 @@ export async function addCashMovement(formData: FormData) {
   });
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CREATE_CASH_MOVEMENT",
     entity: "CashMovement",
@@ -179,7 +179,7 @@ export async function closeCashRegister(formData: FormData) {
   await connectDB();
 
   const cashRegister = await CashRegister.findOne({
-    store: session.user.store,
+    store: session.user.store!,
     status: "ABIERTA",
   });
 
@@ -195,7 +195,7 @@ export async function closeCashRegister(formData: FormData) {
   await cashRegister.save();
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CLOSE_CASH_REGISTER",
     entity: "CashRegister",
@@ -224,7 +224,7 @@ export async function reviewCashRegister(cashRegisterId: string) {
   await CashRegister.findOneAndUpdate(
     {
       _id: cashRegisterId,
-      store: session.user.store,
+      store: session.user.store!,
       status: "CERRADA",
     },
     {
@@ -233,7 +233,7 @@ export async function reviewCashRegister(cashRegisterId: string) {
   );
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "REVIEW_CASH_REGISTER",
     entity: "CashRegister",

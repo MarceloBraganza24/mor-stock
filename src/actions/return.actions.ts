@@ -26,7 +26,7 @@ export async function getReturnableSales() {
   await connectDB();
 
   const sales = await Sale.find({
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   })
     .populate("customer", "name")
@@ -43,7 +43,7 @@ export async function getReturnAdjustments() {
   await connectDB();
 
   const adjustments = await ReturnAdjustment.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("sale", "_id total paymentMethod")
     .populate("user", "name role")
@@ -66,7 +66,7 @@ export async function createReturnAdjustment(formData: FormData) {
 
   const sale = await Sale.findOne({
     _id: parsed.saleId,
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   });
 
@@ -78,7 +78,7 @@ export async function createReturnAdjustment(formData: FormData) {
     await Product.findOneAndUpdate(
       {
         _id: item.product,
-        store: session.user.store,
+        store: session.user.store!,
       },
       {
         $inc: { stock: item.quantity },
@@ -89,7 +89,7 @@ export async function createReturnAdjustment(formData: FormData) {
       for (const usedBatch of item.batches) {
         const batch = await ProductBatch.findOne({
           _id: usedBatch.batch,
-          store: session.user.store,
+          store: session.user.store!,
           product: item.product,
         });
 
@@ -107,13 +107,13 @@ export async function createReturnAdjustment(formData: FormData) {
 
   if (sale.paymentMethod === "EFECTIVO") {
     openCashRegister = await CashRegister.findOne({
-      store: session.user.store,
+      store: session.user.store!,
       status: "ABIERTA",
     });
 
     if (openCashRegister) {
       await CashMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         cashRegister: openCashRegister._id,
         user: session.user.id,
         sale: sale._id,
@@ -135,7 +135,7 @@ export async function createReturnAdjustment(formData: FormData) {
   if (sale.paymentMethod === "FIADO" && sale.customer) {
     const customer = await Customer.findOne({
       _id: sale.customer,
-      store: session.user.store,
+      store: session.user.store!,
     });
 
     if (customer) {
@@ -143,7 +143,7 @@ export async function createReturnAdjustment(formData: FormData) {
       await customer.save();
 
       await CreditMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         customer: customer._id,
         user: session.user.id,
         sale: sale._id,
@@ -158,7 +158,7 @@ export async function createReturnAdjustment(formData: FormData) {
   }
 
   await ReturnAdjustment.create({
-    store: session.user.store,
+    store: session.user.store!,
     sale: sale._id,
     user: session.user.id,
     customer: sale.customer || null,
@@ -170,7 +170,7 @@ export async function createReturnAdjustment(formData: FormData) {
   });
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CREATE_RETURN",
     entity: "ReturnAdjustment",

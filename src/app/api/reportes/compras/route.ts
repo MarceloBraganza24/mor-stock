@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const to = searchParams.get("to");
 
   const query: any = {
-    store: session.user.store,
+    store: session.user.store!,
   };
 
   if (from || to) {

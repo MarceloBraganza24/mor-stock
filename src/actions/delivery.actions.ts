@@ -25,7 +25,7 @@ export async function createDeliveryOrder(formData: FormData) {
     await assertFeatureEnabled(session.user.store, "delivery");
 
     await DeliveryOrder.create({
-      store: session.user.store,
+      store: session.user.store!,
       requestedBy: session.user.id,
       ...parsed,
       status: "PENDIENTE",
@@ -52,7 +52,7 @@ export async function getStoreDeliveryOrders() {
   await connectDB();
 
   const orders = await DeliveryOrder.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("store", "name city")
     .populate("requestedBy", "name role")
@@ -133,7 +133,7 @@ export async function cancelDeliveryOrder(orderId: string) {
   await DeliveryOrder.findOneAndUpdate(
     {
       _id: orderId,
-      store: session.user.store,
+      store: session.user.store!,
       status: { $ne: "ENTREGADO" },
     },
     {

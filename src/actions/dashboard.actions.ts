@@ -18,7 +18,7 @@ export async function getDashboardMetrics() {
 
   await connectDB();
 
-  const store = session.user.store;
+  const store = session.user.store!;
 
   await generateSystemNotifications(store);
 

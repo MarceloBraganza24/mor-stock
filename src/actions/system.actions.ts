@@ -13,7 +13,7 @@ export async function getSystemStatus() {
   const store = await Store.findById(session.user.store);
 
   const lastBackup = await AuditLog.findOne({
-    store: session.user.store,
+    store: session.user.store!,
     action: { $in: ["RESTORE_BACKUP", "DOWNLOAD_BACKUP"] },
   }).sort({ createdAt: -1 });
 

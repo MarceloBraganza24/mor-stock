@@ -81,7 +81,7 @@ export async function createSubscriptionCheckout(plan: PaidPlan) {
   await store.save();
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CREATE_SUBSCRIPTION_CHECKOUT",
     entity: "Store",
@@ -137,7 +137,7 @@ export async function cancelSubscription() {
   await store.save();
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CANCEL_SUBSCRIPTION",
     entity: "Store",

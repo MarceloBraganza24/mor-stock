@@ -27,7 +27,7 @@ export async function getSuppliers() {
   await assertFeatureEnabled(session.user.store, "purchases");
 
   const suppliers = await Supplier.find({
-    store: session.user.store,
+    store: session.user.store!,
     isActive: true,
   }).sort({ name: 1 });
 
@@ -46,7 +46,7 @@ export async function createSupplier(formData: FormData) {
   await connectDB();
 
   await Supplier.create({
-    store: session.user.store,
+    store: session.user.store!,
     ...parsed,
   });
 
@@ -65,7 +65,7 @@ export async function deleteSupplier(supplierId: string) {
   await Supplier.findOneAndUpdate(
     {
       _id: supplierId,
-      store: session.user.store,
+      store: session.user.store!,
     },
     {
       isActive: false,
@@ -83,7 +83,7 @@ export async function getPurchases() {
   await assertFeatureEnabled(session.user.store, "purchases");
 
   const purchases = await Purchase.find({
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("supplier", "name")
     .populate("user", "name role")
@@ -108,7 +108,7 @@ export async function createPurchase(input: unknown) {
     if (parsed.supplierId) {
       supplier = await Supplier.findOne({
         _id: parsed.supplierId,
-        store: session.user.store,
+        store: session.user.store!,
         isActive: true,
       });
 
@@ -123,7 +123,7 @@ export async function createPurchase(input: unknown) {
     for (const item of parsed.items) {
       const product = await Product.findOne({
         _id: item.productId,
-        store: session.user.store,
+        store: session.user.store!,
         isActive: true,
       });
 
@@ -140,7 +140,7 @@ export async function createPurchase(input: unknown) {
       await product.save();
 
       await StockMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         product: product._id,
         user: session.user.id,
         type: "SUMA",
@@ -162,7 +162,7 @@ export async function createPurchase(input: unknown) {
     }
 
     const purchase = await Purchase.create({
-      store: session.user.store,
+      store: session.user.store!,
       supplier: supplier?._id || null,
       user: session.user.id,
       items: purchaseItems,
@@ -172,7 +172,7 @@ export async function createPurchase(input: unknown) {
     });
 
     await createAuditLog({
-      store: session.user.store,
+      store: session.user.store!,
       user: session.user.id,
       action: "CREATE_PURCHASE",
       entity: "Purchase",
@@ -186,13 +186,13 @@ export async function createPurchase(input: unknown) {
 
     if (parsed.paymentMethod === "EFECTIVO") {
       const openCashRegister = await CashRegister.findOne({
-        store: session.user.store,
+        store: session.user.store!,
         status: "ABIERTA",
       });
 
       if (openCashRegister) {
         await CashMovement.create({
-          store: session.user.store,
+          store: session.user.store!,
           cashRegister: openCashRegister._id,
           user: session.user.id,
           type: "EGRESO",
@@ -235,7 +235,7 @@ export async function cancelPurchase(purchaseId: string) {
 
   const purchase = await Purchase.findOne({
     _id: purchaseId,
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   });
 
@@ -246,7 +246,7 @@ export async function cancelPurchase(purchaseId: string) {
   for (const item of purchase.items) {
     const product = await Product.findOne({
       _id: item.product,
-      store: session.user.store,
+      store: session.user.store!,
       isActive: true,
     });
 
@@ -258,7 +258,7 @@ export async function cancelPurchase(purchaseId: string) {
       await product.save();
 
       await StockMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         product: product._id,
         user: session.user.id,
         type: "RESTA",
@@ -275,13 +275,13 @@ export async function cancelPurchase(purchaseId: string) {
 
   if (purchase.paymentMethod === "EFECTIVO") {
     const openCashRegister = await CashRegister.findOne({
-      store: session.user.store,
+      store: session.user.store!,
       status: "ABIERTA",
     });
 
     if (openCashRegister) {
       await CashMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         cashRegister: openCashRegister._id,
         user: session.user.id,
         type: "INGRESO",
@@ -298,7 +298,7 @@ export async function cancelPurchase(purchaseId: string) {
   }
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CANCEL_PURCHASE",
     entity: "Purchase",

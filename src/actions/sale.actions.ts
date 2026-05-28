@@ -58,7 +58,7 @@ export async function createSale(input: unknown) {
 
       customer = await Customer.findOne({
         _id: parsed.customerId,
-        store: session.user.store,
+        store: session.user.store!,
         isActive: true,
       });
 
@@ -74,7 +74,7 @@ export async function createSale(input: unknown) {
     for (const item of parsed.items) {
       const product = await Product.findOne({
         _id: item.productId,
-        store: session.user.store,
+        store: session.user.store!,
         isActive: true,
       });
 
@@ -95,7 +95,7 @@ export async function createSale(input: unknown) {
       let remainingToDiscount = item.quantity;
 
       const batches = await ProductBatch.find({
-        store: session.user.store,
+        store: session.user.store!,
         product: product._id,
         isActive: true,
         quantity: { $gt: 0 },
@@ -141,7 +141,7 @@ export async function createSale(input: unknown) {
     }
 
     const sale = await Sale.create({
-      store: session.user.store,
+      store: session.user.store!,
       user: session.user.id,
       customer: customer?._id || null,
       items: saleItems,
@@ -151,7 +151,7 @@ export async function createSale(input: unknown) {
     });
 
     await createAuditLog({
-      store: session.user.store,
+      store: session.user.store!,
       user: session.user.id,
       action: "CREATE_SALE",
       entity: "Sale",
@@ -165,13 +165,13 @@ export async function createSale(input: unknown) {
 
     if (parsed.paymentMethod === "EFECTIVO") {
       const openCashRegister = await CashRegister.findOne({
-        store: session.user.store,
+        store: session.user.store!,
         status: "ABIERTA",
       });
 
       if (openCashRegister) {
         await CashMovement.create({
-          store: session.user.store,
+          store: session.user.store!,
           cashRegister: openCashRegister._id,
           user: session.user.id,
           sale: sale._id,
@@ -191,7 +191,7 @@ export async function createSale(input: unknown) {
       await customer.save();
 
       await CreditMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         customer: customer._id,
         user: session.user.id,
         sale: sale._id,
@@ -231,7 +231,7 @@ export async function getSaleTicket(saleId: string) {
 
   const sale = await Sale.findOne({
     _id: saleId,
-    store: session.user.store,
+    store: session.user.store!,
   })
     .populate("customer", "name")
     .populate("user", "name role")
@@ -256,7 +256,7 @@ export async function getTodaySales() {
   end.setHours(23, 59, 59, 999);
 
   const sales = await Sale.find({
-    store: session.user.store,
+    store: session.user.store!,
     createdAt: { $gte: start, $lte: end },
     status: "COMPLETADA",
   })
@@ -279,7 +279,7 @@ export async function getSalesHistory(filters?: {
   await connectDB();
 
   const query: any = {
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   };
 
@@ -323,7 +323,7 @@ export async function cancelSale(saleId: string) {
 
   const sale = await Sale.findOne({
     _id: saleId,
-    store: session.user.store,
+    store: session.user.store!,
     status: "COMPLETADA",
   });
 
@@ -335,7 +335,7 @@ export async function cancelSale(saleId: string) {
     await Product.findOneAndUpdate(
       {
         _id: item.product,
-        store: session.user.store,
+        store: session.user.store!,
       },
       {
         $inc: { stock: item.quantity },
@@ -345,7 +345,7 @@ export async function cancelSale(saleId: string) {
       for (const usedBatch of item.batches) {
         const batch = await ProductBatch.findOne({
           _id: usedBatch.batch,
-          store: session.user.store,
+          store: session.user.store!,
           product: item.product,
         });
 
@@ -360,13 +360,13 @@ export async function cancelSale(saleId: string) {
 
   if (sale.paymentMethod === "EFECTIVO") {
     const openCashRegister = await CashRegister.findOne({
-      store: session.user.store,
+      store: session.user.store!,
       status: "ABIERTA",
     });
 
     if (openCashRegister) {
       await CashMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         cashRegister: openCashRegister._id,
         user: session.user.id,
         sale: sale._id,
@@ -384,7 +384,7 @@ export async function cancelSale(saleId: string) {
   if (sale.paymentMethod === "FIADO" && sale.customer) {
     const customer = await Customer.findOne({
       _id: sale.customer,
-      store: session.user.store,
+      store: session.user.store!,
     });
 
     if (customer) {
@@ -392,7 +392,7 @@ export async function cancelSale(saleId: string) {
       await customer.save();
 
       await CreditMovement.create({
-        store: session.user.store,
+        store: session.user.store!,
         customer: customer._id,
         user: session.user.id,
         sale: sale._id,
@@ -411,7 +411,7 @@ export async function cancelSale(saleId: string) {
   await sale.save();
   
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "CANCEL_SALE",
     entity: "Sale",

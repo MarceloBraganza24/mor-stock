@@ -22,11 +22,11 @@ export async function getTrashItems() {
   await connectDB();
 
   const [products, customers, suppliers, employees] = await Promise.all([
-    Product.find({ store: session.user.store, isActive: false }).sort({ updatedAt: -1 }),
-    Customer.find({ store: session.user.store, isActive: false }).sort({ updatedAt: -1 }),
-    Supplier.find({ store: session.user.store, isActive: false }).sort({ updatedAt: -1 }),
+    Product.find({ store: session.user.store!, isActive: false }).sort({ updatedAt: -1 }),
+    Customer.find({ store: session.user.store!, isActive: false }).sort({ updatedAt: -1 }),
+    Supplier.find({ store: session.user.store!, isActive: false }).sort({ updatedAt: -1 }),
     User.find({
-      store: session.user.store,
+      store: session.user.store!,
       isActive: false,
       role: { $in: ["CASHIER", "STOCKER", "DELIVERY"] },
     }).sort({ updatedAt: -1 }),
@@ -56,7 +56,7 @@ export async function restoreTrashItem(type: string, id: string) {
   await Model.findOneAndUpdate(
     {
       _id: id,
-      store: session.user.store,
+      store: session.user.store!,
       isActive: false,
     },
     {
@@ -65,7 +65,7 @@ export async function restoreTrashItem(type: string, id: string) {
   );
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "RESTORE_TRASH_ITEM",
     entity: type,
@@ -93,12 +93,12 @@ export async function permanentlyDeleteTrashItem(type: string, id: string) {
 
   await Model.findOneAndDelete({
     _id: id,
-    store: session.user.store,
+    store: session.user.store!,
     isActive: false,
   });
 
   await createAuditLog({
-    store: session.user.store,
+    store: session.user.store!,
     user: session.user.id,
     action: "PERMANENT_DELETE_TRASH_ITEM",
     entity: type,

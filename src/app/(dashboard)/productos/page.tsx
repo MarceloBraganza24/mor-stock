@@ -7,6 +7,7 @@ import {
   getStockMovements
 } from "@/actions/product.actions";
 import { ProductCreateForm } from "@/components/ProductCreateForm";
+import NextLink from "next/link";
 
 type Props = {
   searchParams: Promise<{
@@ -37,7 +38,14 @@ export default async function ProductosPage({ searchParams }: Props) {
         <p className="mt-2 app-muted">
           Buscá, filtrá, cargá y editá productos del comercio.
         </p>
+        <NextLink
+          href="/productos/importar"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+        >
+          Importar Excel/CSV
+        </NextLink>
       </div>
+
 
       <form
         action="/productos"
