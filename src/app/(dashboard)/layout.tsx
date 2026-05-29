@@ -1,7 +1,6 @@
-import { auth } from "@/auth";
+import { auth,signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-
 import { getCurrentStore } from "@/actions/store.actions";
 
 import { canAccessRole, sectionPermissions, type Section } from "@/lib/permissions";
@@ -346,12 +345,19 @@ function SidebarContent({
         })}
       </nav>
 
-      <Link
-        href="/api/auth/signout?callbackUrl=/login"
-        className="mt-6 rounded-xl px-3 py-3 text-sm app-muted transition hover:bg-white/10 hover:text-red-400"
+      <form
+        action={async () => {
+          "use server";
+          await signOut({
+            redirectTo: "/login",
+          });
+        }}
+        className="mt-6"
       >
-        Cerrar sesión
-      </Link>
+        <button className="w-full rounded-xl px-3 py-3 text-left text-sm app-muted transition hover:bg-white/10 hover:text-red-400">
+          Cerrar sesión
+        </button>
+      </form>
     </div>
   );
 }
