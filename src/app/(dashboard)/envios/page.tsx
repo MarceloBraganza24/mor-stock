@@ -4,6 +4,11 @@ import {
 } from "@/actions/delivery.actions";
 import { DeliveryCreateForm } from "@/components/DeliveryCreateForm";
 import { FeatureLocked } from "@/components/FeatureLocked";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Envíos | MorStock",
+};
 
 export default async function EnviosPage() {
   let orders = [];

@@ -1,4 +1,9 @@
 import { ManualSaleForm } from "@/components/ManualSaleForm";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Venta manual | MorStock",
+};
 
 export default function ManualSalePage() {
   return (

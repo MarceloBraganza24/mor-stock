@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { Mail, MessageCircle, LifeBuoy } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Soporte | MorStock",
+};
 
 export default function SoportePage() {
   const whatsapp = "https://wa.me/5492926457583?text=Hola,%20necesito%20soporte%20con%20Stock%20Local";

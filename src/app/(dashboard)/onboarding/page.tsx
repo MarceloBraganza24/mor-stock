@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { CheckCircle2, Circle, Store, Package, Wallet } from "lucide-react";
 import { getOnboardingStatus } from "@/actions/store.actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Onboarding | MorStock",
+};
 
 export default async function OnboardingPage() {
   const status = await getOnboardingStatus();

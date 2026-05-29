@@ -17,20 +17,23 @@ export function ProductLabelsPrint({
   brands,
   selectedCategory,
   selectedBrand,
+  selectedLimit,
 }: {
   products: Product[];
   categories: string[];
   brands: string[];
   selectedCategory: string;
+  selectedLimit: string;
   selectedBrand: string;
 }) {
   const router = useRouter();
 
-  function updateFilters(category: string, brand: string) {
+  function updateFilters(category: string, brand: string, limit: string) {
     const params = new URLSearchParams();
 
-    if (category) params.set("category", category);
-    if (brand) params.set("brand", brand);
+    if (category && category !== "TODAS") params.set("category", category);
+    if (brand && brand !== "TODAS") params.set("brand", brand);
+    if (limit) params.set("limit", limit);
 
     router.push(`/productos/etiquetas?${params.toString()}`);
   }
@@ -39,9 +42,21 @@ export function ProductLabelsPrint({
     <div>
       <section className="no-print app-card-2xl mb-8 p-5">
         <div className="grid gap-3 md:grid-cols-4">
+
+          <select
+            value={selectedLimit}
+            onChange={(e) =>
+              updateFilters(selectedCategory, selectedBrand, e.target.value)
+            }
+            className="app-input"
+          >
+            <option value="50">Primeros 50</option>
+            <option value="all">Todos los filtrados</option>
+          </select>
+
           <select
             value={selectedCategory}
-            onChange={(e) => updateFilters(e.target.value, selectedBrand)}
+            onChange={(e) => updateFilters(e.target.value, selectedBrand, selectedLimit)}
             className="app-input"
           >
             <option value="">Todas las categorías</option>
@@ -55,7 +70,7 @@ export function ProductLabelsPrint({
 
           <select
             value={selectedBrand}
-            onChange={(e) => updateFilters(selectedCategory, e.target.value)}
+            onChange={(e) => updateFilters(selectedCategory, e.target.value, selectedLimit)}
             className="app-input"
           >
             <option value="">Todas las marcas</option>
@@ -80,21 +95,23 @@ export function ProductLabelsPrint({
         </div>
       </section>
 
-      <section className="labels-grid">
-        {products.map((product) => (
-          <article key={product._id} className="price-label">
-            <p className="label-brand">{product.brand || product.category}</p>
+      <div className="max-h-[70vh] mb-15 overflow-y-auto hide-scrollbar">
+        <section className="labels-grid">
+          {products.map((product) => (
+            <article key={product._id} className="price-label">
+              <p className="label-brand">{product.brand || product.category}</p>
 
-            <h2>{product.name}</h2>
+              <h2>{product.name}</h2>
 
-            <p className="label-price">
-              ${Number(product.salePrice || 0).toLocaleString("es-AR")}
-            </p>
+              <p className="label-price">
+                ${Number(product.salePrice || 0).toLocaleString("es-AR")}
+              </p>
 
-            {product.barcode && <p className="label-code">{product.barcode}</p>}
-          </article>
-        ))}
-      </section>
+              {product.barcode && <p className="label-code">{product.barcode}</p>}
+            </article>
+          ))}
+        </section>
+      </div>
 
       {products.length === 0 && (
         <p className="no-print app-muted">

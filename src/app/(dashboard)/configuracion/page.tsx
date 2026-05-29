@@ -5,6 +5,11 @@ import {
 
 import { StoreLogoUpload } from "@/components/StoreLogoUpload";
 import { RestoreBackupForm } from "@/components/RestoreBackupForm";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Configuración | MorStock",
+};
 
 const inputClass =
   "min-h-12 app-input text-base outline-none transition focus:border-emerald-500";

@@ -3,6 +3,11 @@ import {
   permanentlyDeleteTrashItem,
   restoreTrashItem,
 } from "@/actions/trash.actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Papelera | MorStock",
+};
 
 export default async function PapeleraPage() {
   const trash = await getTrashItems();

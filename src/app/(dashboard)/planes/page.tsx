@@ -1,6 +1,11 @@
 import { getPlanUsage } from "@/actions/store.actions";
 import { plans } from "@/lib/plans";
 import { createSubscriptionCheckout,cancelSubscription } from "@/actions/subscription.actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Planes | MorStock",
+};
 
 export default async function PlanesPage() {
   const usage = await getPlanUsage();
@@ -65,7 +70,7 @@ export default async function PlanesPage() {
             "use server";
             await cancelSubscription();
           }}
-          className="mt-5"
+          className="mt-5 mb-7"
         >
           <button className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/20">
             Cancelar suscripción
@@ -96,11 +101,11 @@ export default async function PlanesPage() {
             </div>
 
             {usage.plan === key ? (
-              <p className="mt-5 rounded-xl bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-400">
+              <p className="mt-5 rounded-xl cursor-pointer bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-400">
                 Plan activo
               </p>
             ) : key === "FREE" ? (
-              <p className="mt-6 rounded-xl bg-white/10 px-4 py-3 text-center text-sm text-white/60">
+              <p className="mt-6 rounded-xl cursor-pointer bg-white/10 px-4 py-3 text-center text-sm text-white/60">
                 Plan gratuito
               </p>
             ) : (
@@ -112,7 +117,7 @@ export default async function PlanesPage() {
                   );
                 }}
               >
-                <button className="mt-6 w-full rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">
+                <button className="mt-6 w-full cursor-pointer rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 hover:bg-emerald-400">
                   Contratar {plan.name}
                 </button>
               </form>

@@ -18,10 +18,16 @@ export async function getProducts(filters?: {
   category?: string;
   lowStock?: string;
   brand?: string;
+  page?: number;
+  limit?: number;
 }) {
   const session = await requireRoles(["OWNER", "STOCKER", "CASHIER"]);
 
   await connectDB();
+
+  const page = Math.max(Number(filters?.page || 1), 1);
+  const limit = Math.min(Number(filters?.limit || 50), 100);
+  const skip = (page - 1) * limit;
 
   const mongoQuery: any = {
     store: session.user.store!,
@@ -47,7 +53,55 @@ export async function getProducts(filters?: {
     mongoQuery.$expr = { $lte: ["$stock", "$minStock"] };
   }
 
-  const products = await Product.find(mongoQuery).sort({ createdAt: -1 });
+  const [products, total] = await Promise.all([
+    Product.find(mongoQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+
+    Product.countDocuments(mongoQuery),
+  ]);
+
+  return {
+    products: JSON.parse(JSON.stringify(products)),
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+export async function getProductsForLabels(filters?: {
+  category?: string;
+  brand?: string;
+  limit?: string;
+}) {
+  const session = await requireRoles(["OWNER", "STOCKER", "CASHIER"]);
+
+  await connectDB();
+
+  const mongoQuery: any = {
+    store: session.user.store!,
+    isActive: true,
+  };
+
+  if (filters?.category && filters.category !== "TODAS") {
+    mongoQuery.category = filters.category;
+  }
+
+  if (filters?.brand && filters.brand !== "TODAS") {
+    mongoQuery.brand = filters.brand;
+  }
+
+  let query = Product.find(mongoQuery)
+    .select("name barcode category brand salePrice")
+    .sort({ category: 1, brand: 1, name: 1 });
+
+  if (filters?.limit !== "all") {
+    query = query.limit(50);
+  }
+
+  const products = await query;
 
   return JSON.parse(JSON.stringify(products));
 }
@@ -179,6 +233,7 @@ export async function createProduct(formData: FormData) {
       store: session.user.store!,
       ...parsed,
       category: parsed.category || "General",
+      brand: parsed.brand || "",
     });
 
     await createAuditLog({

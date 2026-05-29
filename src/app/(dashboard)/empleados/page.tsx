@@ -4,6 +4,11 @@ import {
 } from "@/actions/employee.actions";
 import { TableContainer } from "@/components/ui/TableContainer";
 import { EmployeeCreateForm } from "@/components/EmployeeCreateForm";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Empleados | MorStock",
+};
 
 const cardClass =
   "rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5";

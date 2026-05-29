@@ -1,5 +1,10 @@
 import { getSalesReport } from "@/actions/report.actions";
 import { FeatureLocked } from "@/components/FeatureLocked";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Reportes | MorStock",
+};
 
 type Props = {
   searchParams: Promise<{

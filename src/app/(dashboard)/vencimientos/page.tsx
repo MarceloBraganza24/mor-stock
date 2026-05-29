@@ -6,7 +6,12 @@ import {
 } from "@/actions/batch.actions";
 
 export default async function VencimientosPage() {
-  const products = await getProducts();
+  const productsData = await getProducts({
+    page: 1,
+    limit: 100,
+  });
+
+  const products = productsData.products;
   const alerts = await getExpirationAlerts();
   const batches = await getProductBatches();
 

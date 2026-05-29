@@ -79,7 +79,8 @@ export async function getExpirationAlerts() {
     expirationDate: { $lte: warningDate },
   })
     .populate("product", "name barcode category")
-    .sort({ expirationDate: 1 });
+    .sort({ expirationDate: 1 })
+    .limit(100);
 
   return JSON.parse(JSON.stringify(batches));
 }
@@ -94,7 +95,8 @@ export async function getProductBatches() {
     isActive: true,
   })
     .populate("product", "name barcode category")
-    .sort({ expirationDate: 1 });
+    .sort({ expirationDate: 1 })
+    .limit(100);
 
   return JSON.parse(JSON.stringify(batches));
 }

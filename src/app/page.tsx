@@ -11,6 +11,11 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "MorStock",
+};
 
 export default function HomePage() {
   return (

@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 
 import { getDashboardMetrics } from "@/actions/dashboard.actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard | MorStock",
+};
 
 const cardClass =
   "rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5";

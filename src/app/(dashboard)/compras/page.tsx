@@ -9,6 +9,11 @@ import { getProducts } from "@/actions/product.actions";
 import { PurchaseForm } from "@/components/PurchaseForm";
 import { TableContainer } from "@/components/ui/TableContainer";
 import { FeatureLocked } from "@/components/FeatureLocked";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Compras | MorStock",
+};
 
 type Props = {
   searchParams: Promise<{
@@ -31,7 +36,12 @@ export default async function ComprasPage({ searchParams }: Props) {
   let purchases = [];
 
   try {
-    products = await getProducts();
+    const productsData = await getProducts({
+      page: 1,
+      limit: 50,
+    });
+
+    products = productsData.products;
     suppliers = await getSuppliers();
     purchases = await getPurchases();
   } catch {
@@ -126,41 +136,45 @@ export default async function ComprasPage({ searchParams }: Props) {
           </button>
         </form>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {suppliers.map((supplier: any) => (
-            <div
-              key={supplier._id}
-              className="rounded-2xl border border-white/10 bg-neutral-900 p-4"
-            >
-              <p className="font-medium">{supplier.name}</p>
-
-              <p className="mt-1 text-sm app-muted">
-                {supplier.phone || "Sin teléfono"}
-              </p>
-
-              {supplier.notes && (
-                <p className="mt-1 text-sm text-white/40">{supplier.notes}</p>
-              )}
-
-              <form
-                action={async () => {
-                  "use server";
-                  await deleteSupplier(supplier._id);
-                }}
-                className="mt-3"
+        <div className="mt-5 max-h-[40vh] overflow-y-auto hide-scrollbar pr-2">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {suppliers.map((supplier: any) => (
+              <div
+                key={supplier._id}
+                className="rounded-2xl border border-white/10 bg-neutral-900 p-4"
               >
-                <button className="text-sm font-medium text-red-400 hover:text-red-300">
-                  Eliminar
-                </button>
-              </form>
-            </div>
-          ))}
+                <p className="font-medium">{supplier.name}</p>
 
-          {suppliers.length === 0 && (
-            <p className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-white/40 md:col-span-2 xl:col-span-3">
-              Todavía no cargaste proveedores.
-            </p>
-          )}
+                <p className="mt-1 text-sm app-muted">
+                  {supplier.phone || "Sin teléfono"}
+                </p>
+
+                {supplier.notes && (
+                  <p className="mt-1 text-sm text-white/40">
+                    {supplier.notes}
+                  </p>
+                )}
+
+                <form
+                  action={async () => {
+                    "use server";
+                    await deleteSupplier(supplier._id);
+                  }}
+                  className="mt-3"
+                >
+                  <button className="text-sm cursor-pointer font-medium text-red-400 hover:text-red-300">
+                    Eliminar
+                  </button>
+                </form>
+              </div>
+            ))}
+
+            {suppliers.length === 0 && (
+              <p className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-white/40 md:col-span-2 xl:col-span-3">
+                Todavía no cargaste proveedores.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 

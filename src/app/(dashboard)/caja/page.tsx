@@ -8,6 +8,11 @@ import {
   reviewCashRegister
 } from "@/actions/cash.actions";
 import { TableContainer } from "@/components/ui/TableContainer";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Caja | MorStock",
+};
 
 export default async function CajaPage() {
   const cashRegister = await getOpenCashRegister();
@@ -26,7 +31,7 @@ export default async function CajaPage() {
 
       <a
         href="/api/reportes/caja"
-        className="inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
+        className="inline-flex mb-6 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
       >
         Exportar CSV
       </a>

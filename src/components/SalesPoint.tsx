@@ -6,6 +6,7 @@ import { createSale } from "@/actions/sale.actions";
 import { createCustomer } from "@/actions/customer.actions";
 import { getAvailableCombos } from "@/actions/sale.actions";
 import { calculatePromotionPreview } from "@/lib/client-promotion-engine";
+import Link from "next/link";
 
 type Product = {
   _id: string;
@@ -88,10 +89,11 @@ export function SalesPoint({
 
   const filteredProducts = useMemo(() => {
     const value = query.toLowerCase().trim();
+    const safeProducts = Array.isArray(products) ? products : [];
+    
+    if (!value) return safeProducts.slice(0, 10);
 
-    if (!value) return products.slice(0, 10);
-
-    return products
+    return safeProducts
       .filter((product) => {
         return (
           product.name.toLowerCase().includes(value) ||
@@ -413,7 +415,7 @@ export function SalesPoint({
           </div>
         )}
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="rounded-2xl border mt-6 border-white/10 bg-white/[0.03] p-4">
           <p className="mb-3 text-sm font-semibold text-emerald-400">
             Combos
           </p>
@@ -488,11 +490,32 @@ export function SalesPoint({
           )}
         </div>
 
-        {message && (
-          <p className="mt-4 rounded-lg bg-white/5 p-3 text-sm text-emerald-400">
-            {message}
-          </p>
-        )}
+        <div className="mt-4">
+          {message === "NO_CASH_REGISTER" ? (
+            <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+              <p className="font-semibold text-amber-400">
+                Caja cerrada
+              </p>
+
+              <p className="mt-1 text-sm text-amber-300">
+                Primero debés abrir la caja del día.
+              </p>
+
+              <Link
+                href="/caja"
+                className="mt-3 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
+              >
+                Ir a Caja →
+              </Link>
+            </div>
+          ) : (
+            message && (
+              <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+                {message}
+              </div>
+            )
+          )}
+        </div>
       </section>
 
       <section className={`${cardClass} xl:sticky xl:top-24 xl:self-start`}>

@@ -1,4 +1,9 @@
 import { getPaymentsReport } from "@/actions/payment.actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Cobros | MorStock",
+};
 
 type Props = {
   searchParams: Promise<{
@@ -31,7 +36,7 @@ export default async function CobrosPage({ searchParams }: Props) {
 
       <a
         href={`/api/reportes/compras?from=${params.from || ""}&to=${params.to || ""}`}
-        className="inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
+        className="inline-flex mb-6 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/20"
       >
         Exportar CSV
       </a>

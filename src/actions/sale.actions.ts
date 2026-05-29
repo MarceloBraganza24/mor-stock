@@ -89,6 +89,18 @@ export async function createSale(input: unknown) {
 
     await connectDB();
 
+    const openCashRegister = await CashRegister.findOne({
+      store: session.user.store!,
+      status: "ABIERTA",
+    });
+
+    if (!openCashRegister) {
+      return {
+        success: false,
+        error: "NO_CASH_REGISTER"
+      };
+    }
+
     let customer = null;
 
     if (parsed.paymentMethod === "FIADO") {
@@ -549,6 +561,18 @@ export async function createManualSale(
 
   await connectDB();
 
+  const openCashRegister = await CashRegister.findOne({
+    store: session.user.store!,
+    status: "ABIERTA",
+  });
+
+  if (!openCashRegister) {
+    return {
+      success: false,
+      error: "Primero debés abrir una caja.",
+    };
+  }
+
   if (!items.length) {
     return {
       success: false,
@@ -588,10 +612,17 @@ export async function createManualSale(
   
   await CashMovement.create({
     store: session.user.store!,
-    type: "INCOME",
+    cashRegister: openCashRegister._id,
+    user: session.user.id,
+    sale: sale._id,
+    type: "INGRESO",
+    source: "VENTA_MANUAL",
     amount: total,
     description: `Venta manual #${sale._id}`,
   });
+
+  openCashRegister.expectedAmount += total;
+  await openCashRegister.save();
 
   await createAuditLog({
     store: session.user.store!,

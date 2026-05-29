@@ -1,4 +1,9 @@
 import { getAuditLogs } from "@/actions/audit.actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Actividad | MorStock",
+};
 
 export default async function ActividadPage() {
   const logs = await getAuditLogs();

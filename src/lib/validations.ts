@@ -4,6 +4,7 @@ export const productSchema = z.object({
   name: z.string().min(2, "El nombre es obligatorio"),
   barcode: z.string().optional(),
   category: z.string().optional(),
+  brand: z.coerce.string().trim().optional().default(""),
   costPrice: z.coerce.number().min(0, "El costo no puede ser negativo"),
   salePrice: z.coerce.number().min(0, "El precio no puede ser negativo"),
   stock: z.coerce.number().min(0, "El stock no puede ser negativo"),
@@ -103,4 +104,5 @@ export const storeSettingsSchema = z.object({
   openingHours: z.string().optional(),
   expirationAlertDays: z.coerce.number().min(1).max(365),
   defaultDeliveryFee: z.coerce.number().min(0),
+  theme: z.enum(["dark", "light"]).default("dark"),
 });

@@ -48,6 +48,12 @@ export function ProductCreateForm({
     >
       <input type="hidden" name="redirectTo" value={redirectTo} />
 
+      <div className="md:col-span-2 xl:col-span-4">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-400">
+          Crear producto
+        </h2>
+      </div>
+
       <input
         name="name"
         placeholder="Nombre del producto"

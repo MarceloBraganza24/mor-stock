@@ -4,6 +4,11 @@ import {
   getReturnableSales,
 } from "@/actions/return.actions";
 import { TableContainer } from "@/components/ui/TableContainer";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Devoluciones | MorStock",
+};
 
 export default async function DevolucionesPage() {
   const sales = await getReturnableSales();

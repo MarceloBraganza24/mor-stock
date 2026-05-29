@@ -10,6 +10,11 @@ import {
 import { SalesPoint } from "@/components/SalesPoint";
 import { TableContainer } from "@/components/ui/TableContainer";
 import NextLink from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Ventas | MorStock",
+};
 
 type Props = {
   searchParams: Promise<{
@@ -30,7 +35,12 @@ export default async function VentasPage({
 }: Props) {
   const params = await searchParams;
 
-  const products = await getProducts();
+  const productsData = await getProducts({
+    page: 1,
+    limit: 50,
+  });
+
+  const products = productsData.products;
 
   const customers = await getCustomers();
 
@@ -84,12 +94,14 @@ export default async function VentasPage({
         </p>
       </div>
 
-      <NextLink
-        href="/ventas/manual"
-        className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-      >
-        Venta manual
-      </NextLink>
+      <div className="mb-8 flex flex-wrap gap-3">
+        <NextLink
+          href="/ventas/manual"
+          className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+        >
+          Venta manual
+        </NextLink>
+      </div>
 
       <div className="mb-6 grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className={metricCardClass}>

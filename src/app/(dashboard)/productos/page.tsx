@@ -12,6 +12,7 @@ import { BulkIncreaseSupplierForm } from "@/components/BulkIncreaseSupplierForm"
 import {
   getSuppliers,
 } from "@/actions/purchase.actions";
+import { Metadata } from "next";
 
 type Props = {
   searchParams: Promise<{
@@ -20,18 +21,29 @@ type Props = {
     brand?: string;
     lowStock?: string;
     from?: string;
+    page?: string;
   }>;
+};
+
+export const metadata: Metadata = {
+  title: "Productos | MorStock",
 };
 
 export default async function ProductosPage({ searchParams }: Props) {
   const params = await searchParams;
 
-  const products = await getProducts({
+  const page = Number(params.page || 1);
+
+  const productsData = await getProducts({
     query: params.query,
     brand: params.brand,
     category: params.category,
     lowStock: params.lowStock,
+    page,
+    limit: 50,
   });
+
+  const products = productsData.products;
 
   const categories: string[] = Array.from(
     new Set(
@@ -70,18 +82,21 @@ export default async function ProductosPage({ searchParams }: Props) {
         </p>
       </div>
       
-      <NextLink
-        href="/productos/importar"
-        className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-      >
-        Importar Excel/CSV
-      </NextLink>
-      <NextLink
-        href="/productos/etiquetas"
-        className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-      >
-        Imprimir precios
-      </NextLink>
+      <div className="mb-8 flex flex-wrap gap-3">
+        <NextLink
+          href="/productos/importar"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+        >
+          Importar Excel/CSV
+        </NextLink>
+
+        <NextLink
+          href="/productos/etiquetas"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+        >
+          Imprimir precios
+        </NextLink>
+      </div>
 
       <BulkPriceUpdateForm categories={categories} brands={brands} />
       <BulkIncreaseSupplierForm
@@ -102,21 +117,32 @@ export default async function ProductosPage({ searchParams }: Props) {
         redirectTo={params.from === "ventas" ? "/ventas" : ""}
       />
 
+      <div id="resultados" className="scroll-mt-24" />
+
       <form
-        action="/productos"
+        action="/productos#resultados"
         className="mb-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:gap-4 sm:p-5 md:grid-cols-2 xl:grid-cols-4"
       >
+
+        <input type="hidden" name="page" value="1" />
+
+        <div className="md:col-span-2 xl:col-span-4">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-400">
+            Buscar producto
+          </h2>
+        </div>
+
         <input
           name="query"
           defaultValue={params.query || ""}
           placeholder="Buscar nombre o código"
-          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
+          className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
         />
 
         <select
           name="category"
           defaultValue={params.category || "TODAS"}
-          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
+          className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
         >
           <option value="TODAS">Todas las categorías</option>
           {categories.map((category) => (
@@ -129,7 +155,7 @@ export default async function ProductosPage({ searchParams }: Props) {
         <select
           name="brand"
           defaultValue={params.brand || "TODAS"}
-          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
+          className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
         >
           <option value="TODAS">Todas las marcas</option>
 
@@ -143,7 +169,7 @@ export default async function ProductosPage({ searchParams }: Props) {
         <select
           name="lowStock"
           defaultValue={params.lowStock || "false"}
-          className="min-h-12 app-input text-base outline-none focus:border-emerald-500"
+          className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
         >
           <option value="false">Todos los stocks</option>
           <option value="true">Solo stock bajo</option>
@@ -154,21 +180,27 @@ export default async function ProductosPage({ searchParams }: Props) {
         </button>
       </form>
 
+      <div id="resultados" className="scroll-mt-6" />
+
       <div className="mb-4">
-        <p className="text-sm app-muted">
+        <p className="mb-4 text-sm text-white/50">
           Resultados encontrados:{" "}
-          <span className="font-semibold text-white">{products.length}</span>
+          <strong className="text-white">{productsData.total}</strong>
+          {" "}— página{" "}
+          <strong className="text-white">{productsData.page}</strong>
+          {" "}de{" "}
+          <strong className="text-white">{productsData.totalPages || 1}</strong>
         </p>
       </div>
 
-      <div className="grid gap-4">
+      <div className="max-h-[800px] overflow-y-auto pr-2 hide-scrollbar">
         {products.map((product: any) => {
           const lowStock = product.stock <= product.minStock;
 
           return (
             <div
               key={product._id}
-              className="app-card-2xl p-5"
+              className="app-card-2xl p-5 mb-6"
             >
               <form
                 action={async (formData) => {
@@ -177,15 +209,95 @@ export default async function ProductosPage({ searchParams }: Props) {
                 }}
                 className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4"
               >
-                <input name="name" defaultValue={product.name} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
-                <input name="barcode" defaultValue={product.barcode} placeholder="Código" className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
-                <input name="category" defaultValue={product.category} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
-                <input name="costPrice" type="number" defaultValue={product.costPrice} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
-                <input name="salePrice" type="number" defaultValue={product.salePrice} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
-                <input name="stock" type="number" defaultValue={product.stock} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
-                <input name="minStock" type="number" defaultValue={product.minStock} className="min-h-12 app-input text-base outline-none focus:border-emerald-500" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wider text-emerald-400/70">
+                    Producto
+                  </label>
+                  <input
+                    name="name"
+                    defaultValue={product.name}
+                    placeholder="Nombre del producto"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
 
-                <div className="flex items-center gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">Código / Barcode</label>
+                  <input
+                    name="barcode"
+                    defaultValue={product.barcode}
+                    placeholder="Código"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">Categoría</label>
+                  <input
+                    name="category"
+                    defaultValue={product.category}
+                    placeholder="Categoría"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">
+                    Marca
+                  </label>
+                  <input
+                    name="brand"
+                    defaultValue={product.brand}
+                    placeholder="Marca"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">Precio costo</label>
+                  <input
+                    name="costPrice"
+                    type="number"
+                    defaultValue={product.costPrice}
+                    placeholder="Precio costo"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">Precio venta</label>
+                  <input
+                    name="salePrice"
+                    type="number"
+                    defaultValue={product.salePrice}
+                    placeholder="Precio venta"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">Stock actual</label>
+                  <input
+                    name="stock"
+                    type="number"
+                    defaultValue={product.stock}
+                    placeholder="Stock actual"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-white/45">Stock mínimo</label>
+                  <input
+                    name="minStock"
+                    type="number"
+                    defaultValue={product.minStock}
+                    placeholder="Stock mínimo"
+                    className="min-h-12 w-full app-input text-base outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="xl:col-span-4 flex items-center justify-between gap-4 border-t border-white/10 pt-4">
                   {lowStock ? (
                     <span className="rounded-full bg-red-500/10 px-3 py-2 text-xs text-red-400">
                       Stock bajo
@@ -195,11 +307,11 @@ export default async function ProductosPage({ searchParams }: Props) {
                       Stock OK
                     </span>
                   )}
-                </div>
 
-                <button className="min-h-12 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:opacity-50">
-                  Guardar cambios
-                </button>
+                  <button className="min-h-12 rounded-xl bg-emerald-500 px-6 py-3 font-semibold text-neutral-950 transition hover:bg-emerald-400 disabled:opacity-50">
+                    Guardar cambios
+                  </button>
+                </div>
               </form>
 
               <form
@@ -255,6 +367,42 @@ export default async function ProductosPage({ searchParams }: Props) {
           <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-white/40">
             No se encontraron productos con esos filtros.
           </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex items-center justify-between gap-3">
+        {productsData.page > 1 ? (
+          <NextLink
+            href={{
+              pathname: "/productos",
+              query: {
+                ...params,
+                page: productsData.page - 1,
+              },
+              hash: "resultados",
+            }}
+            className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            ← Anterior
+          </NextLink>
+        ) : (
+          <div />
+        )}
+
+        {productsData.page < productsData.totalPages && (
+          <NextLink
+            href={{
+              pathname: "/productos",
+              query: {
+                ...params,
+                page: productsData.page + 1,
+              },
+              hash: "resultados",
+            }}
+            className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            Siguiente →
+          </NextLink>
         )}
       </div>
       

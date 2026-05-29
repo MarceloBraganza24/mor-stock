@@ -33,8 +33,8 @@ export async function getDashboardMetrics() {
   expirationLimit.setHours(23, 59, 59, 999);
 
   const [
-    todaySales,
-    todayPurchases,
+    salesTodayStats,
+    purchasesTodayStats,
     productsCount,
     lowStockProducts,
     expiringBatches,
@@ -45,17 +45,39 @@ export async function getDashboardMetrics() {
     pendingDeliveries,
     notifications,
   ] = await Promise.all([
-    Sale.find({
-      store,
-      status: "COMPLETADA",
-      createdAt: { $gte: start, $lte: end },
-    }).sort({ createdAt: -1 }),
-      
-    Purchase.find({
-      store,
-      status: "COMPLETADA",
-      createdAt: { $gte: start, $lte: end },
-    }).sort({ createdAt: -1 }),
+    Sale.aggregate([
+      {
+        $match: {
+          store,
+          status: "COMPLETADA",
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: "$paymentMethod",
+          total: { $sum: "$total" },
+          profit: { $sum: "$profit" },
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+
+    Purchase.aggregate([
+      {
+        $match: {
+          store,
+          status: "COMPLETADA",
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalPurchasesToday: { $sum: "$total" },
+        },
+      },
+    ]),
 
     Product.countDocuments({
       store,
@@ -116,7 +138,7 @@ export async function getDashboardMetrics() {
       .populate("deliveryUser", "name")
       .sort({ createdAt: -1 })
       .limit(6),
-    
+
     InternalNotification.find({
       store,
     })
@@ -124,32 +146,38 @@ export async function getDashboardMetrics() {
       .limit(8),
   ]);
 
-  const totalSalesToday = todaySales.reduce(
-    (acc, sale) => acc + sale.total,
+  const totalSalesToday = salesTodayStats.reduce(
+    (acc: number, item: any) => acc + Number(item.total || 0),
     0
   );
 
-  const totalProfitToday = todaySales.reduce(
-    (acc, sale) => acc + sale.profit,
+  const totalProfitToday = salesTodayStats.reduce(
+    (acc: number, item: any) => acc + Number(item.profit || 0),
     0
   );
 
-  const totalPurchasesToday = todayPurchases.reduce(
-    (acc, purchase) => acc + purchase.total,
+  const salesCountToday = salesTodayStats.reduce(
+    (acc: number, item: any) => acc + Number(item.count || 0),
     0
   );
 
-  const totalDebt = customersWithDebt.reduce(
-    (acc, customer) => acc + customer.balance,
-    0
-  );
+  const salesByPaymentMethod = salesTodayStats.reduce<Record<string, number>>(
+    (acc, item: any) => {
+      if (item._id) {
+        acc[item._id] = Number(item.total || 0);
+      }
 
-  const salesByPaymentMethod = todaySales.reduce<Record<string, number>>(
-    (acc, sale) => {
-      acc[sale.paymentMethod] = (acc[sale.paymentMethod] || 0) + sale.total;
       return acc;
     },
     {}
+  );
+
+  const totalPurchasesToday =
+    purchasesTodayStats[0]?.totalPurchasesToday || 0;
+
+  const totalDebt = customersWithDebt.reduce(
+    (acc: number, customer: any) => acc + Number(customer.balance || 0),
+    0
   );
 
   const netToday = totalSalesToday - totalPurchasesToday;
@@ -160,7 +188,7 @@ export async function getDashboardMetrics() {
       totalProfitToday,
       totalPurchasesToday,
       netToday,
-      salesCountToday: todaySales.length,
+      salesCountToday,
       productsCount,
       lowStockProducts,
       lowStockCount: lowStockProducts.length,

@@ -7,6 +7,11 @@ import {
   registerPayment,
 } from "@/actions/customer.actions";
 import { TableContainer } from "@/components/ui/TableContainer";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Clientes | MorStock",
+};
 
 const inputClass =
   "min-h-12 app-input text-base outline-none transition focus:border-emerald-500";

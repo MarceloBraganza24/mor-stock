@@ -40,6 +40,7 @@ export async function getComboProducts() {
       })
         .select("name salePrice stock")
         .sort({ name: 1 })
+        .limit(100)
     )
   );
 }

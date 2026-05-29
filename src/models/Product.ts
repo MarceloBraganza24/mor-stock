@@ -63,5 +63,25 @@ productSchema.index({
   brand: "text",
 });
 
+productSchema.index({
+  store: 1,
+  isActive: 1,
+});
+
+productSchema.index({
+  store: 1,
+  category: 1,
+});
+
+productSchema.index({
+  store: 1,
+  brand: 1,
+});
+
+productSchema.index({
+  store: 1,
+  barcode: 1,
+});
+
 export const Product =
   models.Product || mongoose.model("Product", productSchema);
