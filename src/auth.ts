@@ -1,14 +1,15 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions = {
   trustHost: true,
+
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-  
+
   session: {
     strategy: "jwt",
   },
@@ -83,4 +84,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-});
+} satisfies NextAuthConfig;
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
