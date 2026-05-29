@@ -35,14 +35,13 @@ const protectedRoutes = [
   "/ordenes-compra",
 ];
 
-const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
-
 export default async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   const token = await getToken({
     req,
-    secret: authSecret,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production",
   });
 
   const isLoggedIn = !!token;
