@@ -124,35 +124,14 @@ export function SalesPoint({
     }
   );
 
-  const subtotal =
-    itemsWithPromotions.reduce(
-      (acc, item) =>
-        acc +
-        Number(
-          item.originalSubtotal || 0
-        ),
-      0
-    );
+  const subtotal = cart.reduce(
+    (acc, item) => acc + item.quantity * item.unitPrice,
+    0
+  );
 
-  const discountTotal =
-    itemsWithPromotions.reduce(
-      (acc, item) =>
-        acc +
-        Number(item.discount || 0),
-      0
-    );
+  const discountTotal = 0;
 
-  const total =
-    itemsWithPromotions.reduce(
-      (acc, item) =>
-        acc +
-        Number(
-          item.finalSubtotal ||
-            item.subtotal ||
-            0
-        ),
-      0
-    );
+  const total = subtotal - discountTotal;
 
   function playSuccessSound() {
     const audio = new Audio(
